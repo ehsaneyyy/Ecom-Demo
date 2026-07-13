@@ -20,7 +20,7 @@ export function WishlistProvider({ children }) {
     localStorage.setItem('atelier-wishlist', JSON.stringify(items))
   }, [items])
 
-  const toggleItem = useCallback((product) => {
+  const toggleWishlist = useCallback((product) => {
     setItems((prev) => {
       const exists = prev.some((i) => i.id === product.id)
       if (exists) return prev.filter((i) => i.id !== product.id)
@@ -35,7 +35,7 @@ export function WishlistProvider({ children }) {
   const count = items.length
 
   return (
-    <WishlistContext.Provider value={{ items, toggleItem, isInWishlist, count }}>
+    <WishlistContext.Provider value={{ items, toggleWishlist, isInWishlist, count }}>
       {children}
     </WishlistContext.Provider>
   )

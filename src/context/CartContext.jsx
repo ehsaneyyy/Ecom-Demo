@@ -20,32 +20,40 @@ export function CartProvider({ children }) {
     localStorage.setItem('atelier-cart', JSON.stringify(items))
   }, [items])
 
-  const addItem = useCallback((product) => {
+  const addItem = useCallback((product, quantity = 1, selectedColor = null, selectedSize = null) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === product.id)
+      const key = `${product.id}-${selectedColor || ''}-${selectedSize || ''}`
+      const existing = prev.find((i) => `${i.id}-${i.selectedColor || ''}-${i.selectedSize || ''}` === key)
       if (existing) {
-        return prev.map((i) => i.id === product.id ? { ...i, qty: i.qty + 1 } : i)
+        return prev.map((i) => `${i.id}-${i.selectedColor || ''}-${i.selectedSize || ''}` === key
+          ? { ...i, quantity: i.quantity + quantity }
+          : i)
       }
-      return [...prev, { ...product, qty: 1 }]
+      return [...prev, { ...product, quantity, selectedColor, selectedSize }]
     })
   }, [])
 
-  const removeItem = useCallback((id) => {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+  const removeItem = useCallback((id, selectedColor = null, selectedSize = null) => {
+    setItems((prev) => prev.filter((i) => !(i.id === id && (i.selectedColor || '') === (selectedColor || '') && (i.selectedSize || '') === (selectedSize || ''))))
   }, [])
 
-  const updateQty = useCallback((id, qty) => {
-    if (qty < 1) return setItems((prev) => prev.filter((i) => i.id !== id))
-    setItems((prev) => prev.map((i) => i.id === id ? { ...i, qty } : i))
+  const updateQuantity = useCallback((id, quantity, selectedColor = null, selectedSize = null) => {
+    if (quantity < 1) {
+      setItems((prev) => prev.filter((i) => !(i.id === id && (i.selectedColor || '') === (selectedColor || '') && (i.selectedSize || '') === (selectedSize || ''))))
+      return
+    }
+    setItems((prev) => prev.map((i) => `${i.id}-${i.selectedColor || ''}-${i.selectedSize || ''}` === `${id}-${selectedColor || ''}-${selectedSize || ''}`
+      ? { ...i, quantity }
+      : i))
   }, [])
 
   const clearCart = useCallback(() => setItems([]), [])
 
-  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0)
-  const count = items.reduce((sum, i) => sum + i.qty, 0)
+  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const count = items.reduce((sum, i) => sum + i.quantity, 0)
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQty, clearCart, total, count }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, count }}>
       {children}
     </CartContext.Provider>
   )

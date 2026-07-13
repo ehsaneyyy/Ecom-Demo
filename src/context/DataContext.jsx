@@ -10,7 +10,13 @@ export function useData() {
 function load(key, fallback) {
   try {
     const stored = localStorage.getItem(key)
-    return stored ? JSON.parse(stored) : fallback
+    if (!stored) return fallback
+    const parsed = JSON.parse(stored)
+    if (key === 'atelier-products' && Array.isArray(parsed) && parsed.length > 0 && !parsed[0].images) {
+      localStorage.removeItem(key)
+      return fallback
+    }
+    return parsed
   } catch {
     return fallback
   }

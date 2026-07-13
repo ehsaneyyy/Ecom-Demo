@@ -3,13 +3,31 @@ import { Link } from 'react-router-dom'
 export default function ProductCard({ product }) {
   return (
     <Link to={`/product/${product.id}`} className="group cursor-pointer">
-      <div className="relative aspect-[3/4] mb-4 overflow-hidden" style={{ background: product.color }}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl font-bold text-white/[0.06]">{product.id}</span>
-        </div>
+      <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-[#141414]">
+        {product.images && product.images[0] ? (
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-white/5">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+          </div>
+        )}
         {product.tag && (
           <span className="absolute top-3 left-3 text-[0.55rem] tracking-[0.15em] uppercase px-2.5 py-1 bg-white/10 backdrop-blur-sm text-white/60">
             {product.tag}
+          </span>
+        )}
+        {product.stock === 0 && (
+          <span className="absolute top-3 right-3 text-[0.55rem] tracking-[0.15em] uppercase px-2.5 py-1 bg-black/50 backdrop-blur-sm text-white/40">
+            Sold Out
           </span>
         )}
         {product.rating && (
@@ -25,13 +43,13 @@ export default function ProductCard({ product }) {
         </div>
       </div>
       <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-sm text-white/70 mb-1">{product.name}</h3>
+        <div className="min-w-0 flex-1 mr-3">
+          <h3 className="text-sm text-white/70 mb-1 truncate group-hover:text-white/90 transition-colors">{product.name}</h3>
           <p className="text-xs text-white/30">{product.category}</p>
         </div>
-        <div className="text-right">
-          {product.originalPrice && (
-            <span className="text-xs text-white/25 line-through block">${product.originalPrice}</span>
+        <div className="text-right flex-shrink-0">
+          {product.compareAtPrice && (
+            <span className="text-xs text-white/25 line-through block">${product.compareAtPrice}</span>
           )}
           <span className={`text-sm ${product.tag === 'Sale' ? 'text-[#c85a3e]' : 'text-white/50'}`}>
             ${product.price}
