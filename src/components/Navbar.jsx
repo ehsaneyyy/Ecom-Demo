@@ -1,0 +1,188 @@
+import { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
+import { useAuth } from '../context/AuthContext'
+import SearchOverlay from './SearchOverlay'
+
+export default function Navbar() {
+  const { count } = useCart()
+  const { count: wishlistCount } = useWishlist()
+  const { currentUser, isLoggedIn, logout, isAdmin } = useAuth()
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    setMobileOpen(false)
+    setMenuOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [mobileOpen])
+
+  if (pathname.startsWith('/admin')) return null
+
+  const handleLogout = () => {
+    logout()
+    setMenuOpen(false)
+    setMobileOpen(false)
+    navigate('/')
+  }
+
+  return (
+    <>
+      <nav className="sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-14 sm:h-16">
+          <Link to="/" className="text-sm font-semibold tracking-tight hover:text-white/70 transition-colors">
+            ATELIER
+          </Link>
+
+          <div className="hidden md:flex items-center gap-8 text-xs text-white/40">
+            <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
+            <Link to="/category/all" className="hover:text-white/80 transition-colors">Shop</Link>
+            <Link to="/about" className="hover:text-white/80 transition-colors">About</Link>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hover:text-white/80 transition-colors flex items-center gap-1.5"
+              aria-label="Search products"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              Search
+            </button>
+            <Link to="/wishlist" className="hover:text-white/80 transition-colors relative" aria-label="Wishlist">
+              Wishlist
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1.5 -right-4 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+            {isLoggedIn ? (
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="hover:text-white/80 transition-colors flex items-center gap-1.5"
+                >
+                  <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
+                    {currentUser.name.charAt(0)}
+                  </div>
+                  {currentUser.name.split(' ')[0]}
+                </button>
+                {menuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#141414] border border-white/10 rounded-lg shadow-xl z-50 py-2">
+                      <div className="px-4 py-2 border-b border-white/5">
+                        <p className="text-xs text-white/70 font-medium">{currentUser.name}</p>
+                        <p className="text-[0.6rem] text-white/30">{currentUser.email}</p>
+                      </div>
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
+                          Admin Panel
+                        </Link>
+                      )}
+                      <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="hover:text-white/80 transition-colors">Account</Link>
+            )}
+            <Link to="/cart" className="relative hover:text-white/80 transition-colors">
+              Cart
+              {count > 0 && (
+                <span className="absolute -top-1.5 -right-4 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
+                  {count}
+                </span>
+              )}
+            </Link>
+          </div>
+
+          <div className="flex md:hidden items-center gap-3">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors"
+              aria-label="Search"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </button>
+            <Link to="/cart" className="relative w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors" aria-label="Cart">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              {count > 0 && (
+                <span className="absolute top-1 right-1 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
+                  {count}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors"
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            >
+              {mobileOpen ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M3 12h18M3 6h18M3 18h18" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="absolute top-14 left-0 right-0 bg-[#0a0a0a] border-b border-white/5 shadow-2xl animate-slide-down">
+            <div className="px-6 py-6 space-y-1">
+              <Link to="/" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Home</Link>
+              <Link to="/category/all" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Shop</Link>
+              <Link to="/about" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">About</Link>
+              <Link to="/wishlist" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">
+                Wishlist {wishlistCount > 0 && <span className="text-white/30">({wishlistCount})</span>}
+              </Link>
+              <div className="border-t border-white/5 my-3" />
+              {isLoggedIn ? (
+                <>
+                  <div className="py-3">
+                    <p className="text-sm text-white/80 font-medium">{currentUser.name}</p>
+                    <p className="text-xs text-white/30">{currentUser.email}</p>
+                  </div>
+                  {isAdmin && (
+                    <Link to="/admin" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Admin Panel</Link>
+                  )}
+                  <button onClick={handleLogout} className="block w-full text-left py-3 text-sm text-white/60 hover:text-white transition-colors">Sign Out</button>
+                </>
+              ) : (
+                <Link to="/login" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Account</Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
+  )
+}

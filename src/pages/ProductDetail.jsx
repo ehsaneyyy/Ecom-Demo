@@ -1,0 +1,268 @@
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { useData } from '../context/DataContext'
+import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
+import { useSEO } from '../hooks/useSEO'
+
+export default function ProductDetail() {
+  const { id } = useParams()
+  const { products } = useData()
+  const { addItem } = useCart()
+  const { toggleWishlist, isInWishlist } = useWishlist()
+  const product = products.find((p) => p.id === id)
+
+  useSEO({
+    title: product ? product.name : undefined,
+    description: product ? product.description : undefined,
+    path: `/product/${id}`,
+    product,
+  })
+
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [selectedColor, setSelectedColor] = useState(null)
+  const [selectedSize, setSelectedSize] = useState(null)
+  const [quantity, setQuantity] = useState(1)
+  const [added, setAdded] = useState(false)
+  const [expandedReview, setExpandedReview] = useState(null)
+  const [showAllReviews, setShowAllReviews] = useState(false)
+
+  if (!product) {
+    return (
+      <div className="animate-fade-in min-h-[60vh] flex flex-col items-center justify-center px-4">
+        <p className="text-sm text-white/20 mb-6">Product not found</p>
+        <Link to="/category/all" className="text-xs text-white/30 hover:text-white/50 transition-colors">Back to shop</Link>
+      </div>
+    )
+  }
+
+  const reviews = product.reviews || []
+  const relatedProducts = products.filter((p) => p.id !== product.id).slice(0, 4)
+
+  const handleAddToCart = () => {
+    addItem(product, quantity, selectedColor, selectedSize)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
+  }
+
+  const wishlisted = isInWishlist(product.id)
+
+  const averageRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : null
+
+  return (
+    <>
+      <div className="animate-fade-in max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="aspect-square bg-[#141414] rounded-lg overflow-hidden flex items-center justify-center">
+              {product.images && product.images[selectedImage] ? (
+                <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+              ) : (
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/5">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+              )}
+            </div>
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {product.images.map((img, i) => (
+                  <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] rounded flex-shrink-0 overflow-hidden transition-colors ${selectedImage === i ? 'ring-1 ring-white/20' : 'hover:ring-1 hover:ring-white/10'}`}>
+                    {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-6 sm:space-y-8">
+            <div>
+              <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">{product.category}</p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em] mb-3 sm:mb-4">{product.name}</h1>
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <p className="text-xl sm:text-2xl text-white/50">${product.price}</p>
+                {product.compareAtPrice && (
+                  <p className="text-sm text-white/20 line-through">${product.compareAtPrice}</p>
+                )}
+              </div>
+              {averageRating && (
+                <div className="flex items-center gap-2 text-sm text-white/30">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <span key={s} className={`text-sm ${s <= Math.round(averageRating) ? 'text-[#c8a97e]' : 'text-white/10'}`}>★</span>
+                    ))}
+                  </div>
+                  <span className="text-xs text-white/30">{averageRating} ({reviews.length} reviews)</span>
+                </div>
+              )}
+            </div>
+
+            <p className="text-sm text-white/30 leading-relaxed">{product.description}</p>
+
+            {product.colors && (
+              <div>
+                <p className="text-xs text-white/25 mb-3">Color</p>
+                <div className="flex gap-2">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border transition-colors ${selectedColor === color ? 'border-white/30' : 'border-white/10 hover:border-white/20'}`}
+                      style={{ backgroundColor: color }}
+                      aria-label={`Color: ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {product.sizes && (
+              <div>
+                <p className="text-xs text-white/25 mb-3">Size</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`min-w-[44px] h-11 px-4 border text-xs transition-colors ${selectedSize === size ? 'border-white/30 text-white/80' : 'border-white/10 text-white/30 hover:border-white/20'}`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <p className="text-xs text-white/25">Quantity</p>
+              <div className="flex items-center gap-0 w-fit">
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-11 h-11 flex items-center justify-center border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-colors text-lg" aria-label="Decrease quantity">−</button>
+                <span className="w-12 h-11 flex items-center justify-center text-sm text-white/50 border-y border-white/10">{quantity}</span>
+                <button onClick={() => setQuantity(quantity + 1)} className="w-11 h-11 flex items-center justify-center border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-colors text-lg" aria-label="Increase quantity">+</button>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px]"
+              >
+                {added ? 'Added to Bag ✓' : 'Add to Bag'}
+              </button>
+              <button
+                onClick={() => toggleWishlist(product)}
+                className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50'}`}
+                aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-4 py-5 border-y border-white/5 text-[0.6rem] sm:text-xs text-white/25">
+              <span className="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="3" width="15" height="13" />
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                  <circle cx="5.5" cy="18.5" r="2.5" />
+                  <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
+                Free shipping over $200
+              </span>
+              <span className="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                30-day returns
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {reviews.length > 0 && (
+          <section className="mt-16 sm:mt-24">
+            <div className="flex items-end justify-between mb-8 sm:mb-12">
+              <div>
+                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">Reviews</p>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em]">{reviews.length} Reviews</h2>
+                {averageRating && (
+                  <p className="text-sm text-white/30 mt-1">Average: {averageRating} / 5</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-0">
+              {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
+                <div key={review.id} className="border-b border-white/5 py-6 sm:py-8">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[0.6rem] text-white/40">
+                        {review.author.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/60">{review.author}</p>
+                        <p className="text-[0.6rem] text-white/20">{new Date(review.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span key={s} className={`text-sm ${s <= review.rating ? 'text-[#c8a97e]' : 'text-white/10'}`}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                  {review.verified && (
+                    <p className="text-[0.55rem] text-[#4ade80]/60 mb-2 flex items-center gap-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      Verified Purchase
+                    </p>
+                  )}
+                  <p className={`text-sm text-white/40 leading-relaxed ${expandedReview !== review.id ? 'line-clamp-3' : ''}`}>{review.text}</p>
+                  {review.text.length > 150 && (
+                    <button onClick={() => setExpandedReview(expandedReview === review.id ? null : review.id)} className="text-[0.6rem] text-white/20 hover:text-white/40 transition-colors mt-2">
+                      {expandedReview === review.id ? 'Show less' : 'Read more'}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {reviews.length > 3 && !showAllReviews && (
+              <button onClick={() => setShowAllReviews(true)} className="w-full py-4 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors mt-4">
+                Show all {reviews.length} reviews
+              </button>
+            )}
+          </section>
+        )}
+
+        {relatedProducts.length > 0 && (
+          <section className="mt-16 sm:mt-24">
+            <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">You may also like</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] mb-8 sm:mb-12">Related Products</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
+              {relatedProducts.map((rp) => (
+                <Link key={rp.id} to={`/product/${rp.id}`} className="group block">
+                  <div className="aspect-[4/5] bg-[#141414] rounded-sm mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
+                    {rp.images && rp.images[0] ? (
+                      <img src={rp.images[0]} alt={rp.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-white/5">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                      </svg>
+                    )}
+                  </div>
+                  <h3 className="text-sm text-white/70 mb-1 group-hover:text-white/90 transition-colors truncate">{rp.name}</h3>
+                  <p className="text-sm text-white/30">${rp.price}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </>
+  )
+}
