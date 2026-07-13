@@ -1,0 +1,45 @@
+import apiClient from './client'
+
+export const authApi = {
+  login: (email, password) =>
+    apiClient.post('/auth/login', { email, password }).then((r) => r.data),
+
+  register: (name, email, password, adminKey) =>
+    apiClient.post('/auth/register', { name, email, password, admin_key: adminKey || undefined }).then((r) => r.data),
+
+  me: () => apiClient.get('/auth/me').then((r) => r.data),
+}
+
+export const productApi = {
+  list: (params = {}) =>
+    apiClient.get('/product', { params }).then((r) => r.data),
+
+  get: (id) =>
+    apiClient.get(`/product/${id}`).then((r) => r.data),
+
+  create: (data) =>
+    apiClient.post('/product', data).then((r) => r.data),
+
+  update: (id, data) =>
+    apiClient.put(`/product/${id}`, data).then((r) => r.data),
+
+  delete: (id) =>
+    apiClient.delete(`/product/${id}`).then((r) => r.data),
+
+  addReview: (productId, data) =>
+    apiClient.post(`/product/${productId}/review`, data).then((r) => r.data),
+}
+
+export const orderApi = {
+  list: () =>
+    apiClient.get('/order').then((r) => r.data),
+
+  get: (id) =>
+    apiClient.get(`/order/${id}`).then((r) => r.data),
+
+  create: (shippingAddress, items) =>
+    apiClient.post('/order', { shipping_address: shipping_address, items }).then((r) => r.data),
+
+  updateStatus: (id, status) =>
+    apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),
+}

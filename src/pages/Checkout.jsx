@@ -80,23 +80,19 @@ export default function Checkout() {
     else if (step === 2 && validateStep2()) setStep(3)
   }
 
-  const handlePlaceOrder = () => {
-    addOrder({
-      id: `ORD-${Date.now()}`,
-      date: new Date().toISOString(),
-      customer: { name: `${shipping.firstName} ${shipping.lastName}`, email: shipping.email },
-      items: items.map((item) => ({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      total: grandTotal,
-      status: 'pending',
-      shippingAddress: `${shipping.address}, ${shipping.city}, ${shipping.state} ${shipping.zip}`,
-      paymentMethod: `**** ${payment.cardNumber.slice(-4)}`,
-    })
-    clearCart()
-    setSubmitted(true)
+  const handlePlaceOrder = async () => {
+    const address = `${shipping.address}, ${shipping.city}, ${shipping.state} ${shipping.zip}`
+    const orderItems = items.map((item) => ({
+      product_id: String(item.id),
+      quantity: item.quantity,
+    }))
+    try {
+      await addOrder(address, orderItems)
+      clearCart()
+      setSubmitted(true)
+    } catch (err) {
+      setServerError('Failed to place order. Please try again.')
+    }
   }
 
   if (submitted) {

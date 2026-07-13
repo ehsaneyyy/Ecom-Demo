@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { AuthProvider } from './context/AuthContext'
@@ -24,6 +25,12 @@ const Dashboard = lazy(() => import('./admin/Dashboard'))
 const AdminProducts = lazy(() => import('./admin/AdminProducts'))
 const AdminOrders = lazy(() => import('./admin/AdminOrders'))
 const AdminCustomers = lazy(() => import('./admin/AdminCustomers'))
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30000, retry: 1 },
+  },
+})
 
 function Loading() {
   return (
@@ -51,49 +58,51 @@ function Layout({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <DataProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <Layout>
-                <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:text-xs">
-                  Skip to content
-                </a>
-                <Suspense fallback={<Loading />}>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/category/:slug" element={<CategoryPage />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/wishlist" element={<WishlistPage />} />
-                    <Route path="/about" element={<ContentPages />} />
-                    <Route path="/shipping" element={<ContentPages />} />
-                    <Route path="/returns" element={<ContentPages />} />
-                    <Route path="/faq" element={<ContentPages />} />
-                    <Route path="/privacy" element={<ContentPages />} />
-                    <Route path="/terms" element={<ContentPages />} />
-                    <Route path="/gift-cards" element={<ComingSoon title="Gift Cards" description="Gift cards coming soon." />} />
-                    <Route path="/sustainability" element={<ComingSoon title="Sustainability" description="Full sustainability report coming soon." />} />
-                    <Route path="/press" element={<ComingSoon title="Press" description="Press kit coming soon." />} />
-                    <Route path="/contact" element={<ComingSoon title="Contact" description="Email us at hello@atelier.com." />} />
-                    <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                      <Route index element={<Dashboard />} />
-                      <Route path="products" element={<AdminProducts />} />
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="customers" element={<AdminCustomers />} />
-                    </Route>
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </Layout>
-            </WishlistProvider>
-          </CartProvider>
-        </DataProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <DataProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Layout>
+                  <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:text-xs">
+                    Skip to content
+                  </a>
+                  <Suspense fallback={<Loading />}>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/product/:id" element={<ProductDetail />} />
+                      <Route path="/category/:slug" element={<CategoryPage />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/wishlist" element={<WishlistPage />} />
+                      <Route path="/about" element={<ContentPages />} />
+                      <Route path="/shipping" element={<ContentPages />} />
+                      <Route path="/returns" element={<ContentPages />} />
+                      <Route path="/faq" element={<ContentPages />} />
+                      <Route path="/privacy" element={<ContentPages />} />
+                      <Route path="/terms" element={<ContentPages />} />
+                      <Route path="/gift-cards" element={<ComingSoon title="Gift Cards" description="Gift cards coming soon." />} />
+                      <Route path="/sustainability" element={<ComingSoon title="Sustainability" description="Full sustainability report coming soon." />} />
+                      <Route path="/press" element={<ComingSoon title="Press" description="Press kit coming soon." />} />
+                      <Route path="/contact" element={<ComingSoon title="Contact" description="Email us at hello@atelier.com." />} />
+                      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="products" element={<AdminProducts />} />
+                        <Route path="orders" element={<AdminOrders />} />
+                        <Route path="customers" element={<AdminCustomers />} />
+                      </Route>
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </Layout>
+              </WishlistProvider>
+            </CartProvider>
+          </DataProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   )
 }

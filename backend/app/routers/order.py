@@ -1,15 +1,24 @@
-import json
-
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.auth import get_current_user, require_admin
 from app.database import get_session
 from app.models import Order, OrderItem, Product, User
-from app.schemas import OrderCreate, OrderItemCreate, OrderItemResponse, OrderResponse
+from app.schemas import OrderCreate, OrderItemResponse, OrderResponse
 
 router = APIRouter(prefix="/api/order", tags=["order"])
+
+
+class OrderItemInput(BaseModel):
+    product_id: str
+    quantity: int
+
+
+class OrderCreateWithItems(BaseModel):
+    shipping_address: str
+    items: list[OrderItemInput]
 
 
 def order_to_response(order: Order) -> OrderResponse:
@@ -33,12 +42,12 @@ def order_to_response(order: Order) -> OrderResponse:
 
 @router.post("", response_model=OrderResponse)
 async def create_order(
-    body: OrderCreate,
+    body: OrderCreateWithItems,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    cart_key = f"cart_{current_user.id}"
-    cart_data_raw = None
+    if not body.items:
+        raise HTTPException(status_code=400, detail="Order must have at least one item")
 
     order = Order(
         user_id=current_user.id,
@@ -49,14 +58,30 @@ async def create_order(
     session.add(order)
     await session.flush()
 
-    result = await session.execute(
-        select(OrderItem).where(OrderItem.order_id == order.id)
-    )
+    total = 0
+    for item_input in body.items:
+        result = await session.execute(select(Product).where(Product.id == item_input.product_id))
+        product = result.scalar_one_or_none()
+        if not product:
+            raise HTTPException(status_code=404, detail=f"Product {item_input.product_id} not found")
 
-    order.total = sum(item.price * item.quantity for item in order.items)
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=product.id,
+            product_name=product.name,
+            price=product.price,
+            quantity=item_input.quantity,
+        )
+        session.add(order_item)
+        total += product.price * item_input.quantity
+
+    order.total = total
     session.add(order)
     await session.commit()
     await session.refresh(order)
+
+    items_result = await session.execute(select(OrderItem).where(OrderItem.order_id == order.id))
+    order.items = items_result.scalars().all()
 
     return order_to_response(order)
 

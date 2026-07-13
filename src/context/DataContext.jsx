@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { PRODUCTS as SEED_PRODUCTS, ORDERS as SEED_ORDERS, CUSTOMERS as SEED_CUSTOMERS } from '../data/store'
+import { productApi, orderApi } from '../api/api'
+import { useAuth } from './AuthContext'
 
 const DataContext = createContext()
 
@@ -7,98 +8,103 @@ export function useData() {
   return useContext(DataContext)
 }
 
-function load(key, fallback) {
-  try {
-    const stored = localStorage.getItem(key)
-    if (!stored) return fallback
-    const parsed = JSON.parse(stored)
-    if (key === 'atelier-products' && Array.isArray(parsed) && parsed.length > 0 && !parsed[0].color) {
-      localStorage.removeItem(key)
-      return fallback
-    }
-    return parsed
-  } catch {
-    return fallback
-  }
-}
-
 export function DataProvider({ children }) {
-  const [products, setProducts] = useState(() => load('atelier-products', SEED_PRODUCTS))
-  const [orders, setOrders] = useState(() => load('atelier-orders', SEED_ORDERS))
-  const [customers, setCustomers] = useState(() => load('atelier-customers', SEED_CUSTOMERS))
+  const { token } = useAuth()
+  const [products, setProducts] = useState([])
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      const data = await productApi.list()
+      setProducts(data)
+    } catch (err) {
+      console.error('Failed to fetch products:', err)
+    }
+  }, [])
+
+  const fetchOrders = useCallback(async () => {
+    if (!token) return
+    try {
+      const data = await orderApi.list()
+      setOrders(data)
+    } catch (err) {
+      console.error('Failed to fetch orders:', err)
+    }
+  }, [token])
 
   useEffect(() => {
-    localStorage.setItem('atelier-products', JSON.stringify(products))
-  }, [products])
-
-  useEffect(() => {
-    localStorage.setItem('atelier-orders', JSON.stringify(orders))
-  }, [orders])
-
-  useEffect(() => {
-    localStorage.setItem('atelier-customers', JSON.stringify(customers))
-  }, [customers])
-
-  const addProduct = useCallback((product) => {
-    const newProduct = {
-      ...product,
-      id: Math.max(0, ...products.map((p) => p.id)) + 1,
-      price: Number(product.price),
+    const load = async () => {
+      setLoading(true)
+      await fetchProducts()
+      if (token) await fetchOrders()
+      setLoading(false)
     }
-    setProducts((prev) => [...prev, newProduct])
-    return newProduct
-  }, [products])
+    load()
+  }, [fetchProducts, fetchOrders, token])
 
-  const updateProduct = useCallback((id, updates) => {
-    setProducts((prev) => prev.map((p) => p.id === id ? { ...p, ...updates, price: Number(updates.price ?? p.price) } : p))
-  }, [])
-
-  const deleteProduct = useCallback((id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id))
-  }, [])
-
-  const updateOrderStatus = useCallback((id, status) => {
-    setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o))
-  }, [])
-
-  const addOrder = useCallback((order) => {
-    const newOrder = {
-      ...order,
-      id: `ORD-${String(orders.length + 1).padStart(3, '0')}`,
-      date: new Date().toISOString().split('T')[0],
+  const addProduct = useCallback(async (productData) => {
+    try {
+      const newProduct = await productApi.create(productData)
+      setProducts((prev) => [...prev, newProduct])
+      return newProduct
+    } catch (err) {
+      console.error('Failed to create product:', err)
+      throw err
     }
-    setOrders((prev) => [newOrder, ...prev])
-    return newOrder
-  }, [orders])
-
-  const deleteCustomer = useCallback((id) => {
-    setCustomers((prev) => prev.filter((c) => c.id !== id))
   }, [])
 
-  const addCustomer = useCallback((customer) => {
-    const newCustomer = {
-      ...customer,
-      id: Math.max(0, ...customers.map((c) => c.id)) + 1,
-      orders: 0,
-      spent: 0,
-      joined: new Date().toISOString().split('T')[0],
+  const updateProduct = useCallback(async (id, updates) => {
+    try {
+      const updated = await productApi.update(id, updates)
+      setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)))
+      return updated
+    } catch (err) {
+      console.error('Failed to update product:', err)
+      throw err
     }
-    setCustomers((prev) => [...prev, newCustomer])
-    return newCustomer
-  }, [customers])
-
-  const resetData = useCallback(() => {
-    setProducts(SEED_PRODUCTS)
-    setOrders(SEED_ORDERS)
-    setCustomers(SEED_CUSTOMERS)
   }, [])
+
+  const deleteProduct = useCallback(async (id) => {
+    try {
+      await productApi.delete(id)
+      setProducts((prev) => prev.filter((p) => p.id !== id))
+    } catch (err) {
+      console.error('Failed to delete product:', err)
+      throw err
+    }
+  }, [])
+
+  const addOrder = useCallback(async (shippingAddress, items) => {
+    try {
+      const newOrder = await orderApi.create(shippingAddress, items)
+      setOrders((prev) => [newOrder, ...prev])
+      return newOrder
+    } catch (err) {
+      console.error('Failed to create order:', err)
+      throw err
+    }
+  }, [])
+
+  const updateOrderStatus = useCallback(async (id, status) => {
+    try {
+      await orderApi.updateStatus(id, status)
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)))
+    } catch (err) {
+      console.error('Failed to update order:', err)
+      throw err
+    }
+  }, [])
+
+  const customers = []
 
   return (
     <DataContext.Provider value={{
-      products, addProduct, updateProduct, deleteProduct,
-      orders, updateOrderStatus, addOrder,
-      customers, addCustomer, deleteCustomer,
-      resetData,
+      products, loading,
+      orders, addOrder, updateOrderStatus,
+      customers,
+      addProduct, updateProduct, deleteProduct,
+      fetchProducts, fetchOrders,
     }}>
       {children}
     </DataContext.Provider>
