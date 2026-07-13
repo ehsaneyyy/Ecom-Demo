@@ -10,7 +10,7 @@ export default function ProductDetail() {
   const { products } = useData()
   const { addItem } = useCart()
   const { toggleWishlist, isInWishlist } = useWishlist()
-  const product = products.find((p) => p.id === Number(id))
+  const product = products.find((p) => p.id === id)
 
   useSEO({
     title: product ? product.name : undefined,

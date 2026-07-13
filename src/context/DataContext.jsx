@@ -4,6 +4,30 @@ import { useAuth } from './AuthContext'
 
 const DataContext = createContext()
 
+function transformProduct(p) {
+  return {
+    ...p,
+    compareAtPrice: p.compare_at_price,
+    reviews: (p.reviews || []).map((r) => ({
+      ...r,
+      author: r.user_name,
+      date: r.created_at,
+    })),
+  }
+}
+
+function transformOrder(o) {
+  return {
+    ...o,
+    createdAt: o.created_at,
+    shippingAddress: o.shipping_address,
+    items: (o.items || []).map((i) => ({
+      ...i,
+      productName: i.product_name,
+    })),
+  }
+}
+
 export function useData() {
   return useContext(DataContext)
 }
@@ -17,7 +41,7 @@ export function DataProvider({ children }) {
   const fetchProducts = useCallback(async () => {
     try {
       const data = await productApi.list()
-      setProducts(data)
+      setProducts(data.map(transformProduct))
     } catch (err) {
       console.error('Failed to fetch products:', err)
     }
@@ -27,7 +51,7 @@ export function DataProvider({ children }) {
     if (!token) return
     try {
       const data = await orderApi.list()
-      setOrders(data)
+      setOrders(data.map(transformOrder))
     } catch (err) {
       console.error('Failed to fetch orders:', err)
     }
@@ -46,7 +70,7 @@ export function DataProvider({ children }) {
   const addProduct = useCallback(async (productData) => {
     try {
       const newProduct = await productApi.create(productData)
-      setProducts((prev) => [...prev, newProduct])
+      setProducts((prev) => [...prev, transformProduct(newProduct)])
       return newProduct
     } catch (err) {
       console.error('Failed to create product:', err)
@@ -57,7 +81,7 @@ export function DataProvider({ children }) {
   const updateProduct = useCallback(async (id, updates) => {
     try {
       const updated = await productApi.update(id, updates)
-      setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)))
+      setProducts((prev) => prev.map((p) => (p.id === id ? transformProduct(updated) : p)))
       return updated
     } catch (err) {
       console.error('Failed to update product:', err)
@@ -78,7 +102,7 @@ export function DataProvider({ children }) {
   const addOrder = useCallback(async (shippingAddress, items) => {
     try {
       const newOrder = await orderApi.create(shippingAddress, items)
-      setOrders((prev) => [newOrder, ...prev])
+      setOrders((prev) => [transformOrder(newOrder), ...prev])
       return newOrder
     } catch (err) {
       console.error('Failed to create order:', err)

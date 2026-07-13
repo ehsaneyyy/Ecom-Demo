@@ -8,7 +8,6 @@ export default function CategoryPage() {
   const { slug } = useParams()
   const { products } = useData()
   const [sortBy, setSortBy] = useState('featured')
-  const [priceRange, setPriceRange] = useState([0, 10000])
 
   useSEO({
     title: slug === 'all' ? 'All Products' : slug,
@@ -18,14 +17,13 @@ export default function CategoryPage() {
 
   const filtered = useMemo(() => {
     let result = slug === 'all' ? products : products.filter((p) => p.category.toLowerCase() === slug)
-    result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1])
     switch (sortBy) {
       case 'price-low': return [...result].sort((a, b) => a.price - b.price)
       case 'price-high': return [...result].sort((a, b) => b.price - a.price)
       case 'newest': return [...result].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
       default: return result
     }
-  }, [slug, products, sortBy, priceRange])
+  }, [slug, products, sortBy])
 
   const pageTitle = slug === 'all' ? 'All Products' : slug.charAt(0).toUpperCase() + slug.slice(1)
 
@@ -49,18 +47,6 @@ export default function CategoryPage() {
             <option value="price-high">Price: High to Low</option>
             <option value="newest">Newest</option>
           </select>
-          <div className="flex items-center gap-2">
-            <input
-              type="range"
-              min="0"
-              max="10000"
-              value={priceRange[1]}
-              onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-              className="w-20 sm:w-32 accent-white/30"
-              aria-label="Max price"
-            />
-            <span className="text-[0.6rem] text-white/20">Up to ${priceRange[1].toLocaleString()}</span>
-          </div>
         </div>
       </div>
 
