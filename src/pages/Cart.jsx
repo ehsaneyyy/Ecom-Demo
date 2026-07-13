@@ -23,16 +23,12 @@ export default function Cart() {
         <div className="lg:col-span-2 space-y-0">
           {items.map((item) => (
             <div key={`${item.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="flex gap-4 sm:gap-6 py-6 sm:py-8 border-b border-white/5">
-              <Link to={`/product/${item.id}`} className="w-20 h-24 sm:w-28 sm:h-32 bg-[#141414] rounded flex-shrink-0 flex items-center justify-center text-white/10 hover:text-white/20 transition-colors">
-                {item.images && item.images[0] ? (
-                  <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover rounded" />
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="sm:w-6 sm:h-6">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
-                  </svg>
-                )}
+              <Link to={`/product/${item.id}`} className="w-20 h-24 sm:w-28 sm:h-32 rounded flex-shrink-0 flex items-center justify-center text-white/10 hover:text-white/20 transition-colors" style={{ background: item.color }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="sm:w-6 sm:h-6">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
               </Link>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">

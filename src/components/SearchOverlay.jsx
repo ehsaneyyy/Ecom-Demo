@@ -73,12 +73,8 @@ export default function SearchOverlay({ open, onClose }) {
                       onClick={onClose}
                       className="flex items-center gap-4 px-4 sm:px-5 py-3 hover:bg-white/5 transition-colors"
                     >
-                      <div className="w-10 h-10 bg-white/5 rounded flex items-center justify-center text-white/10 flex-shrink-0">
-                        {product.images && product.images[0] ? (
-                          <img src={product.images[0]} alt="" className="w-full h-full object-cover rounded" />
-                        ) : (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
-                        )}
+                      <div className="w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-white/10" style={{ background: product.color }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white/60 truncate">{product.name}</p>

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
@@ -6,28 +7,40 @@ import { DataProvider } from './context/DataContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import AdminRoute from './components/AdminRoute'
-import { ToastContainer } from './components/Toast'
-import Home from './pages/Home'
-import ProductDetail from './pages/ProductDetail'
-import CategoryPage from './pages/CategoryPage'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import WishlistPage from './pages/WishlistPage'
-import AboutPage from './pages/AboutPage'
-import ShippingPage from './pages/ShippingPage'
-import ReturnsPage from './pages/ReturnsPage'
-import FAQPage from './pages/FAQPage'
-import PrivacyPage from './pages/PrivacyPage'
-import TermsPage from './pages/TermsPage'
-import ComingSoon from './pages/ComingSoon'
-import NotFound from './pages/NotFound'
-import AdminLayout from './admin/AdminLayout'
-import Dashboard from './admin/Dashboard'
-import AdminProducts from './admin/AdminProducts'
-import AdminOrders from './admin/AdminOrders'
-import AdminCustomers from './admin/AdminCustomers'
+
+const Home = lazy(() => import('./pages/Home'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const CategoryPage = lazy(() => import('./pages/CategoryPage'))
+const Cart = lazy(() => import('./pages/Cart'))
+const Checkout = lazy(() => import('./pages/Checkout'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const WishlistPage = lazy(() => import('./pages/WishlistPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const ShippingPage = lazy(() => import('./pages/ShippingPage'))
+const ReturnsPage = lazy(() => import('./pages/ReturnsPage'))
+const FAQPage = lazy(() => import('./pages/FAQPage'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
+const ComingSoon = lazy(() => import('./pages/ComingSoon'))
+const NotFound = lazy(() => import('./pages/NotFound'))
+const AdminLayout = lazy(() => import('./admin/AdminLayout'))
+const Dashboard = lazy(() => import('./admin/Dashboard'))
+const AdminProducts = lazy(() => import('./admin/AdminProducts'))
+const AdminOrders = lazy(() => import('./admin/AdminOrders'))
+const AdminCustomers = lazy(() => import('./admin/AdminCustomers'))
+
+function Page({ children }) {
+  return <div className="animate-fade-in">{children}</div>
+}
+
+function Loading() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="w-5 h-5 border border-white/10 border-t-white/40 rounded-full animate-spin" />
+    </div>
+  )
+}
 
 function Layout({ children }) {
   const { pathname } = useLocation()
@@ -53,37 +66,38 @@ export default function App() {
           <CartProvider>
             <WishlistProvider>
               <Layout>
-                <ToastContainer />
                 <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:text-xs">
                   Skip to content
                 </a>
-                <Routes>
-                  <Route path="/" element={<div className="animate-fade-in"><Home /></div>} />
-                  <Route path="/product/:id" element={<div className="animate-fade-in"><ProductDetail /></div>} />
-                  <Route path="/category/:slug" element={<div className="animate-fade-in"><CategoryPage /></div>} />
-                  <Route path="/cart" element={<div className="animate-fade-in"><Cart /></div>} />
-                  <Route path="/checkout" element={<div className="animate-fade-in"><Checkout /></div>} />
-                  <Route path="/login" element={<div className="animate-fade-in"><Login /></div>} />
-                  <Route path="/register" element={<div className="animate-fade-in"><Register /></div>} />
-                  <Route path="/wishlist" element={<div className="animate-fade-in"><WishlistPage /></div>} />
-                  <Route path="/about" element={<div className="animate-fade-in"><AboutPage /></div>} />
-                  <Route path="/shipping" element={<div className="animate-fade-in"><ShippingPage /></div>} />
-                  <Route path="/returns" element={<div className="animate-fade-in"><ReturnsPage /></div>} />
-                  <Route path="/faq" element={<div className="animate-fade-in"><FAQPage /></div>} />
-                  <Route path="/privacy" element={<div className="animate-fade-in"><PrivacyPage /></div>} />
-                  <Route path="/terms" element={<div className="animate-fade-in"><TermsPage /></div>} />
-                  <Route path="/gift-cards" element={<div className="animate-fade-in"><ComingSoon title="Gift Cards" description="Gift cards will be available soon. Share the gift of considered living." /></div>} />
-                  <Route path="/sustainability" element={<div className="animate-fade-in"><ComingSoon title="Sustainability" description="Our full sustainability report is coming soon." /></div>} />
-                  <Route path="/press" element={<div className="animate-fade-in"><ComingSoon title="Press" description="Press kit and media resources coming soon." /></div>} />
-                  <Route path="/contact" element={<div className="animate-fade-in"><ComingSoon title="Contact" description="Our contact form is coming soon. For now, email us at hello@atelier.com." /></div>} />
-                  <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="products" element={<AdminProducts />} />
-                    <Route path="orders" element={<AdminOrders />} />
-                    <Route path="customers" element={<AdminCustomers />} />
-                  </Route>
-                  <Route path="*" element={<div className="animate-fade-in"><NotFound /></div>} />
-                </Routes>
+                <Suspense fallback={<Loading />}>
+                  <Routes>
+                    <Route path="/" element={<Page><Home /></Page>} />
+                    <Route path="/product/:id" element={<Page><ProductDetail /></Page>} />
+                    <Route path="/category/:slug" element={<Page><CategoryPage /></Page>} />
+                    <Route path="/cart" element={<Page><Cart /></Page>} />
+                    <Route path="/checkout" element={<Page><Checkout /></Page>} />
+                    <Route path="/login" element={<Page><Login /></Page>} />
+                    <Route path="/register" element={<Page><Register /></Page>} />
+                    <Route path="/wishlist" element={<Page><WishlistPage /></Page>} />
+                    <Route path="/about" element={<Page><AboutPage /></Page>} />
+                    <Route path="/shipping" element={<Page><ShippingPage /></Page>} />
+                    <Route path="/returns" element={<Page><ReturnsPage /></Page>} />
+                    <Route path="/faq" element={<Page><FAQPage /></Page>} />
+                    <Route path="/privacy" element={<Page><PrivacyPage /></Page>} />
+                    <Route path="/terms" element={<Page><TermsPage /></Page>} />
+                    <Route path="/gift-cards" element={<Page><ComingSoon title="Gift Cards" description="Gift cards coming soon." /></Page>} />
+                    <Route path="/sustainability" element={<Page><ComingSoon title="Sustainability" description="Full sustainability report coming soon." /></Page>} />
+                    <Route path="/press" element={<Page><ComingSoon title="Press" description="Press kit and media resources coming soon." /></Page>} />
+                    <Route path="/contact" element={<Page><ComingSoon title="Contact" description="Contact form coming soon. Email us at hello@atelier.com." /></Page>} />
+                    <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                      <Route index element={<Dashboard />} />
+                      <Route path="products" element={<AdminProducts />} />
+                      <Route path="orders" element={<AdminOrders />} />
+                      <Route path="customers" element={<AdminCustomers />} />
+                    </Route>
+                    <Route path="*" element={<Page><NotFound /></Page>} />
+                  </Routes>
+                </Suspense>
               </Layout>
             </WishlistProvider>
           </CartProvider>

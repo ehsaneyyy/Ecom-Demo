@@ -12,7 +12,7 @@ function load(key, fallback) {
     const stored = localStorage.getItem(key)
     if (!stored) return fallback
     const parsed = JSON.parse(stored)
-    if (key === 'atelier-products' && Array.isArray(parsed) && parsed.length > 0 && !parsed[0].images) {
+    if (key === 'atelier-products' && Array.isArray(parsed) && parsed.length > 0 && !parsed[0].color) {
       localStorage.removeItem(key)
       return fallback
     }

@@ -26,16 +26,8 @@ export default function WishlistPage() {
         {items.map((product) => (
           <div key={product.id} className="group">
             <Link to={`/product/${product.id}`} className="block">
-              <div className="aspect-[4/5] bg-[#141414] rounded-sm mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
-                {product.images && product.images[0] ? (
-                  <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                ) : (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-white/5">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
-                  </svg>
-                )}
+              <div className="aspect-[4/5] rounded-sm mb-3 sm:mb-4 flex items-center justify-center overflow-hidden" style={{ background: product.color }}>
+                <span className="text-[0.5rem] tracking-[0.2em] uppercase text-white/10 text-center px-2">{product.name}</span>
               </div>
               <h3 className="text-sm text-white/70 mb-1 group-hover:text-white/90 transition-colors truncate">{product.name}</h3>
               <p className="text-sm text-white/30">${product.price}</p>

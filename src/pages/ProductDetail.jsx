@@ -19,7 +19,6 @@ export default function ProductDetail() {
     product,
   })
 
-  const [selectedImage, setSelectedImage] = useState(0)
   const [selectedColor, setSelectedColor] = useState(null)
   const [selectedSize, setSelectedSize] = useState(null)
   const [quantity, setQuantity] = useState(1)
@@ -56,23 +55,13 @@ export default function ProductDetail() {
       <div className="animate-fade-in max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16">
           <div className="space-y-3 sm:space-y-4">
-            <div className="aspect-square bg-[#141414] rounded-lg overflow-hidden flex items-center justify-center">
-              {product.images && product.images[selectedImage] ? (
-                <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/5">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 0 1-8 0" />
-                </svg>
-              )}
+            <div className="aspect-square rounded-lg overflow-hidden flex items-center justify-center" style={{ background: product.color }}>
+              <span className="text-4xl sm:text-5xl font-bold text-white/[0.06] text-center px-8 leading-tight">{product.name}</span>
             </div>
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {product.images.map((img, i) => (
-                  <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 sm:w-20 sm:h-20 bg-[#141414] rounded flex-shrink-0 overflow-hidden transition-colors ${selectedImage === i ? 'ring-1 ring-white/20' : 'hover:ring-1 hover:ring-white/10'}`}>
-                    {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : null}
-                  </button>
+            {product.colors && product.colors.length > 1 && (
+              <div className="flex gap-2">
+                {product.colors.map((c, i) => (
+                  <div key={i} className="w-16 h-16 sm:w-20 sm:h-20 rounded flex-shrink-0" style={{ background: c }} />
                 ))}
               </div>
             )}
@@ -148,9 +137,10 @@ export default function ProductDetail() {
             <div className="flex gap-3">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px]"
+                disabled={product.stock === 0}
+                className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                {added ? 'Added to Bag ✓' : 'Add to Bag'}
+                {product.stock === 0 ? 'Sold Out' : added ? 'Added to Bag ✓' : 'Add to Bag'}
               </button>
               <button
                 onClick={() => toggleWishlist(product)}
@@ -244,16 +234,8 @@ export default function ProductDetail() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
               {relatedProducts.map((rp) => (
                 <Link key={rp.id} to={`/product/${rp.id}`} className="group block">
-                  <div className="aspect-[4/5] bg-[#141414] rounded-sm mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
-                    {rp.images && rp.images[0] ? (
-                      <img src={rp.images[0]} alt={rp.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    ) : (
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-white/5">
-                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <path d="M16 10a4 4 0 0 1-8 0" />
-                      </svg>
-                    )}
+                  <div className="aspect-[4/5] rounded-sm mb-3 sm:mb-4 flex items-center justify-center overflow-hidden" style={{ background: rp.color }}>
+                    <span className="text-[0.5rem] tracking-[0.2em] uppercase text-white/10 text-center px-2">{rp.name}</span>
                   </div>
                   <h3 className="text-sm text-white/70 mb-1 group-hover:text-white/90 transition-colors truncate">{rp.name}</h3>
                   <p className="text-sm text-white/30">${rp.price}</p>

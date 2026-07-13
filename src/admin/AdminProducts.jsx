@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
+import ConfirmModal from '../components/ConfirmModal'
 
 export default function AdminProducts() {
   const { products, addProduct, updateProduct, deleteProduct } = useData()
   const [editing, setEditing] = useState(null)
   const [showAdd, setShowAdd] = useState(false)
-  const [form, setForm] = useState({ name: '', price: '', description: '', category: 'Ceramics', stock: '10', images: '' })
+  const [form, setForm] = useState({ name: '', price: '', description: '', category: 'Ceramics', stock: '10' })
   const [toast, setToast] = useState(null)
+  const [confirm, setConfirm] = useState({ open: false, onConfirm: null })
 
-  const resetForm = () => setForm({ name: '', price: '', description: '', category: 'Ceramics', stock: '10', images: '' })
+  const resetForm = () => setForm({ name: '', price: '', description: '', category: 'Ceramics', stock: '10' })
 
   const showToast = (msg) => {
     setToast(msg)
@@ -23,7 +25,7 @@ export default function AdminProducts() {
       description: form.description.trim(),
       category: form.category,
       stock: parseInt(form.stock) || 0,
-      images: form.images ? form.images.split(',').map((s) => s.trim()).filter(Boolean) : [],
+      color: '#1a1a1a',
     }
     if (editing) {
       updateProduct(editing.id, productData)
@@ -44,21 +46,28 @@ export default function AdminProducts() {
       description: product.description || '',
       category: product.category,
       stock: (product.stock ?? 10).toString(),
-      images: (product.images || []).join(', '),
     })
     setEditing(product)
     setShowAdd(true)
   }
 
   const handleDelete = (product) => {
-    if (window.confirm(`Delete "${product.name}"?`)) {
-      deleteProduct(product.id)
-      showToast('Product deleted')
-    }
+    setConfirm({
+      open: true,
+      title: 'Delete Product',
+      message: `Delete "${product.name}"? This action cannot be undone.`,
+      onConfirm: () => {
+        deleteProduct(product.id)
+        showToast('Product deleted')
+        setConfirm({ open: false })
+      },
+    })
   }
 
   return (
     <div className="space-y-6">
+      <ConfirmModal {...confirm} onCancel={() => setConfirm({ open: false })} />
+
       {toast && (
         <div className="fixed top-4 right-4 z-50 px-4 py-2 bg-[#1a1a1a] border border-white/10 text-xs text-white/60 rounded-lg shadow-xl animate-slide-down">
           {toast}
@@ -90,10 +99,10 @@ export default function AdminProducts() {
             <div>
               <label className="block text-[0.6rem] text-white/25 mb-1">Category</label>
               <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors">
-                <option>Ceramics</option>
-                <option>Textiles</option>
-                <option>Furniture</option>
-                <option>Lighting</option>
+                <option>Living</option>
+                <option>Bedroom</option>
+                <option>Kitchen</option>
+                <option>Office</option>
               </select>
             </div>
             <div>
@@ -104,10 +113,6 @@ export default function AdminProducts() {
           <div>
             <label className="block text-[0.6rem] text-white/25 mb-1">Description</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors resize-none" />
-          </div>
-          <div>
-            <label className="block text-[0.6rem] text-white/25 mb-1">Image URLs (comma separated)</label>
-            <input value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} placeholder="https://..." className="w-full px-3 py-2.5 bg-white/5 border border-white/10 text-sm text-white/70 placeholder-white/15 focus:outline-none focus:border-white/20 transition-colors" />
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={handleSave} className="px-5 py-2.5 bg-white text-black text-xs tracking-[0.1em] uppercase hover:bg-white/90 transition-colors min-h-[44px]">
@@ -122,7 +127,7 @@ export default function AdminProducts() {
 
       <div className="bg-[#141414] rounded-lg border border-white/5">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
+          <table className="w-full min-w-[500px]">
             <thead>
               <tr className="border-b border-white/5">
                 <th className="text-left px-4 sm:px-6 py-3 text-[0.6rem] tracking-[0.1em] uppercase text-white/25 font-medium">Product</th>

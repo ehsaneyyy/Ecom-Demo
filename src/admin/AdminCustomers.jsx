@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
+import ConfirmModal from '../components/ConfirmModal'
 
 export default function AdminCustomers() {
   const { customers, deleteCustomer, orders } = useData()
   const [search, setSearch] = useState('')
   const [expandedCustomer, setExpandedCustomer] = useState(null)
   const [toast, setToast] = useState(null)
+  const [confirm, setConfirm] = useState({ open: false, onConfirm: null })
 
   const showToast = (msg) => {
     setToast(msg)
@@ -18,10 +20,16 @@ export default function AdminCustomers() {
   )
 
   const handleDelete = (customer) => {
-    if (window.confirm(`Delete customer "${customer.name}"? This cannot be undone.`)) {
-      deleteCustomer(customer.id)
-      showToast('Customer deleted')
-    }
+    setConfirm({
+      open: true,
+      title: 'Delete Customer',
+      message: `Delete "${customer.name}"? This cannot be undone.`,
+      onConfirm: () => {
+        deleteCustomer(customer.id)
+        showToast('Customer deleted')
+        setConfirm({ open: false })
+      },
+    })
   }
 
   const getCustomerOrders = (customerId) => {
@@ -30,6 +38,8 @@ export default function AdminCustomers() {
 
   return (
     <div className="space-y-6">
+      <ConfirmModal {...confirm} onCancel={() => setConfirm({ open: false })} />
+
       {toast && (
         <div className="fixed top-4 right-4 z-50 px-4 py-2 bg-[#1a1a1a] border border-white/10 text-xs text-white/60 rounded-lg shadow-xl animate-slide-down">
           {toast}

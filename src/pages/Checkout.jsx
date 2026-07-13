@@ -262,12 +262,8 @@ export default function Checkout() {
             <div className="space-y-3 mb-6">
               {items.map((item) => (
                 <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="flex gap-3">
-                  <div className="w-12 h-14 bg-white/5 rounded flex-shrink-0 flex items-center justify-center text-white/10">
-                    {item.images && item.images[0] ? (
-                      <img src={item.images[0]} alt="" className="w-full h-full object-cover rounded" />
-                    ) : (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
-                    )}
+                  <div className="w-12 h-14 rounded flex-shrink-0 flex items-center justify-center text-white/10" style={{ background: item.color }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-white/50 truncate">{item.name}</p>
