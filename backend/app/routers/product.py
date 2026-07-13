@@ -2,6 +2,8 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select as sa_select
+from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from app.auth import get_current_user, require_admin
@@ -73,9 +75,9 @@ async def list_products(
     result = await session.execute(query)
     products = result.scalars().all()
 
-    review_query = select(Review)
+    review_query = sa_select(Review).options(selectinload(Review.user))
     review_result = await session.execute(review_query)
-    all_reviews = review_result.scalars().all()
+    all_reviews = review_result.scalars().unique().all()
     reviews_by_product = {}
     for r in all_reviews:
         reviews_by_product.setdefault(r.product_id, []).append(r)
@@ -91,9 +93,9 @@ async def get_product(product_id: str, session: AsyncSession = Depends(get_sessi
         raise HTTPException(status_code=404, detail="Product not found")
 
     review_result = await session.execute(
-        select(Review).where(Review.product_id == product_id)
+        sa_select(Review).where(Review.product_id == product_id).options(selectinload(Review.user))
     )
-    reviews = review_result.scalars().all()
+    reviews = review_result.scalars().unique().all()
     return product_to_response(product, reviews)
 
 
