@@ -78,10 +78,7 @@ async def create_order(
     order.total = total
     session.add(order)
     await session.commit()
-    await session.refresh(order)
-
-    items_result = await session.execute(select(OrderItem).where(OrderItem.order_id == order.id))
-    order.items = items_result.scalars().all()
+    await session.refresh(order, ["items"])
 
     return order_to_response(order)
 
@@ -99,14 +96,8 @@ async def list_orders(
         )
     orders = result.scalars().all()
 
-    all_items_result = await session.execute(select(OrderItem))
-    all_items = all_items_result.scalars().all()
-    items_by_order = {}
-    for item in all_items:
-        items_by_order.setdefault(item.order_id, []).append(item)
-
     for order in orders:
-        order.items = items_by_order.get(order.id, [])
+        await session.refresh(order, ["items"])
 
     return [order_to_response(o) for o in orders]
 
@@ -125,10 +116,7 @@ async def get_order(
     if not current_user.is_admin and order.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    items_result = await session.execute(
-        select(OrderItem).where(OrderItem.order_id == order_id)
-    )
-    order.items = items_result.scalars().all()
+    await session.refresh(order, ["items"])
 
     return order_to_response(order)
 
