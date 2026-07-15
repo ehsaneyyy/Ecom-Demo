@@ -27,6 +27,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:3000",
         "https://ecom-demo-rho.vercel.app",
+        "https://ecom-demo-iota-brown.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
