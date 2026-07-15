@@ -18,37 +18,3 @@ export function useSEO({ title, description, path }) {
     }
   }, [title, description, path])
 }
-
-export function useProductSEO(product) {
-  useSEO({
-    title: product ? product.name : undefined,
-    description: product ? product.desc : undefined,
-    path: product ? `/product/${product.id}` : undefined,
-  })
-
-  useEffect(() => {
-    if (!product) return
-
-    const existing = document.getElementById('product-schema')
-    if (existing) existing.remove()
-
-    const script = document.createElement('script')
-    script.id = 'product-schema'
-    script.type = 'application/ld+json'
-    script.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: product.name,
-      description: product.desc,
-      offers: {
-        '@type': 'Offer',
-        price: product.price,
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-      },
-    })
-    document.head.appendChild(script)
-
-    return () => script.remove()
-  }, [product])
-}

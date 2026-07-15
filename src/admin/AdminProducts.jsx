@@ -1,21 +1,17 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import ConfirmModal from '../components/ConfirmModal'
+import { useToast } from '../components/Toast'
 
 export default function AdminProducts() {
   const { products, addProduct, updateProduct, deleteProduct } = useData()
+  const { show } = useToast()
   const [editing, setEditing] = useState(null)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name: '', price: '', description: '', category: 'Ceramics', stock: '10' })
-  const [toast, setToast] = useState(null)
   const [confirm, setConfirm] = useState({ open: false, onConfirm: null })
 
   const resetForm = () => setForm({ name: '', price: '', description: '', category: 'Ceramics', stock: '10' })
-
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
-  }
 
   const handleSave = () => {
     if (!form.name.trim() || !form.price) return
@@ -29,10 +25,10 @@ export default function AdminProducts() {
     }
     if (editing) {
       updateProduct(editing.id, productData)
-      showToast('Product updated')
+      show('Product updated')
     } else {
       addProduct(productData)
-      showToast('Product created')
+      show('Product created')
     }
     resetForm()
     setEditing(null)
@@ -58,7 +54,7 @@ export default function AdminProducts() {
       message: `Delete "${product.name}"? This action cannot be undone.`,
       onConfirm: () => {
         deleteProduct(product.id)
-        showToast('Product deleted')
+        show('Product deleted')
         setConfirm({ open: false })
       },
     })
@@ -67,12 +63,6 @@ export default function AdminProducts() {
   return (
     <div className="space-y-6">
       <ConfirmModal {...confirm} onCancel={() => setConfirm({ open: false })} />
-
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-2 bg-[#1a1a1a] border border-white/10 text-xs text-white/60 rounded-lg shadow-xl animate-slide-down">
-          {toast}
-        </div>
-      )}
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em]">Products</h1>

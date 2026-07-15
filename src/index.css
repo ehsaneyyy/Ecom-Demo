@@ -28,6 +28,23 @@ body {
   background: rgba(255, 255, 255, 0.15);
 }
 
+:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+button {
+  transition: transform 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -35,6 +52,15 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.25s ease-in forwards;
 }
 
 @keyframes slideUp {
@@ -62,6 +88,11 @@ body {
 
 .animate-scale-in {
   animation: scaleIn 0.3s ease-out forwards;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
 .sr-only {
@@ -95,5 +126,16 @@ input, select, textarea, button {
 @media (max-width: 640px) {
   input, select, textarea {
     font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

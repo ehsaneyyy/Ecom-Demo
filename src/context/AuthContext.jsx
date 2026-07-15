@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   const isLoggedIn = !!currentUser
-  const isAdmin = useCallback(() => currentUser?.is_admin || false, [currentUser])
+  const isAdmin = currentUser?.is_admin || false
 
   return (
     <AuthContext.Provider value={{ currentUser, token, isLoggedIn, isAdmin, login, register, logout }}>

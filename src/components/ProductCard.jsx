@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export default function ProductCard({ product }) {
   return (
     <Link to={`/product/${product.id}`} className="group cursor-pointer">
-      <div className="relative aspect-[3/4] mb-4 overflow-hidden" style={{ background: product.color }}>
+      <div className="relative aspect-[3/4] mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform duration-500" style={{ background: product.color }}>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-[0.6rem] tracking-[0.3em] uppercase text-white/10 text-center px-4 leading-relaxed">{product.name}</span>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { emailRegex } from '../utils/validate'
 
 const footerLinks = {
   shop: [
@@ -33,7 +34,7 @@ export default function Footer() {
 
   const handleSubscribe = (e) => {
     e.preventDefault()
-    if (email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email.trim() && emailRegex.test(email)) {
       setSubscribed(true)
     }
   }

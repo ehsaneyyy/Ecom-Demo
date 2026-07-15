@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useWishlist } from '../context/WishlistContext'
 
-export default function WishlistPage() {
+export default function Wishlist() {
   const { items, toggleWishlist } = useWishlist()
 
   if (items.length === 0) {

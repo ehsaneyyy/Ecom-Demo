@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -14,6 +14,8 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [hidden, setHidden] = useState(false)
+  const lastScrollY = useRef(0)
 
   useEffect(() => {
     const handleToggleSearch = () => setSearchOpen(true)
@@ -31,6 +33,24 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY
+      setHidden(y > 100 && y > lastScrollY.current)
+      lastScrollY.current = y
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const isActive = (path) => {
+    if (path === '/') return pathname === '/'
+    return pathname.startsWith(path)
+  }
+
+  const linkClass = (path) =>
+    `transition-colors ${isActive(path) ? 'text-white/80' : 'hover:text-white/80'}`
+
   if (pathname.startsWith('/admin')) return null
 
   const handleLogout = () => {
@@ -42,16 +62,16 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5">
+      <nav className={`sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5 transition-transform duration-300 ${hidden && mobileOpen ? '-translate-y-full' : ''}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-14 sm:h-16">
           <Link to="/" className="text-sm font-semibold tracking-tight hover:text-white/70 transition-colors">
             ATELIER
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-xs text-white/40">
-            <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
-            <Link to="/category/all" className="hover:text-white/80 transition-colors">Shop</Link>
-            <Link to="/about" className="hover:text-white/80 transition-colors">About</Link>
+            <Link to="/" className={linkClass('/')}>Home</Link>
+            <Link to="/category/all" className={linkClass('/category')}>Shop</Link>
+            <Link to="/about" className={linkClass('/about')}>About</Link>
             <button
               onClick={() => setSearchOpen(true)}
               className="hover:text-white/80 transition-colors flex items-center gap-1.5"
@@ -63,7 +83,7 @@ export default function Navbar() {
               </svg>
               Search
             </button>
-            <Link to="/wishlist" className="hover:text-white/80 transition-colors relative" aria-label="Wishlist">
+            <Link to="/wishlist" className={`${linkClass('/wishlist')} relative`} aria-label="Wishlist">
               Wishlist
               {wishlistCount > 0 && (
                 <span className="absolute -top-1.5 -right-4 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
@@ -108,7 +128,7 @@ export default function Navbar() {
             ) : (
               <Link to="/login" className="hover:text-white/80 transition-colors">Account</Link>
             )}
-            <Link to="/cart" className="relative hover:text-white/80 transition-colors">
+            <Link to="/cart" className={`${linkClass('/cart')} relative`}>
               Cart
               {count > 0 && (
                 <span className="absolute -top-1.5 -right-4 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
@@ -165,10 +185,10 @@ export default function Navbar() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <div className="absolute top-14 left-0 right-0 bg-[#0a0a0a] border-b border-white/5 shadow-2xl animate-slide-down">
             <div className="px-6 py-6 space-y-1">
-              <Link to="/" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Home</Link>
-              <Link to="/category/all" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Shop</Link>
-              <Link to="/about" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">About</Link>
-              <Link to="/wishlist" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">
+              <Link to="/" className={`block py-3 text-sm transition-colors ${isActive('/') ? 'text-white' : 'text-white/60 hover:text-white'}`}>Home</Link>
+              <Link to="/category/all" className={`block py-3 text-sm transition-colors ${isActive('/category') ? 'text-white' : 'text-white/60 hover:text-white'}`}>Shop</Link>
+              <Link to="/about" className={`block py-3 text-sm transition-colors ${isActive('/about') ? 'text-white' : 'text-white/60 hover:text-white'}`}>About</Link>
+              <Link to="/wishlist" className={`block py-3 text-sm transition-colors ${isActive('/wishlist') ? 'text-white' : 'text-white/60 hover:text-white'}`}>
                 Wishlist {wishlistCount > 0 && <span className="text-white/30">({wishlistCount})</span>}
               </Link>
               <div className="border-t border-white/5 my-3" />

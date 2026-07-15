@@ -3,7 +3,7 @@ import json
 
 from sqlmodel import select
 
-from app.auth import hash_password
+from app.auth_utils import hash_password
 from app.database import async_session_factory, create_db_and_tables
 from app.models import Product, User
 

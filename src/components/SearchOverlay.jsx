@@ -1,18 +1,35 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 
 export default function SearchOverlay({ open, onClose }) {
   const { products } = useData()
   const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef(null)
+  const listRef = useRef(null)
+
+  const results = useMemo(() => {
+    if (!query.trim()) return []
+    return products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.category.toLowerCase().includes(query.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(query.toLowerCase()))
+    )
+  }, [query, products])
 
   useEffect(() => {
     if (open) {
       setQuery('')
+      setActiveIndex(-1)
       setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [open])
+
+  useEffect(() => {
+    setActiveIndex(-1)
+  }, [query])
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -27,16 +44,32 @@ export default function SearchOverlay({ open, onClose }) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [open, onClose])
 
-  if (!open) return null
+  const handleKeyDown = (e) => {
+    if (!results.length) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((prev) => (prev + 1) % results.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((prev) => (prev <= 0 ? results.length - 1 : prev - 1))
+    } else if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault()
+      const product = results[activeIndex]
+      if (product) {
+        onClose()
+        window.location.href = `/product/${product.id}`
+      }
+    }
+  }
 
-  const results = query.trim()
-    ? products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase()) ||
-          (p.description && p.description.toLowerCase().includes(query.toLowerCase()))
-      )
-    : []
+  useEffect(() => {
+    if (activeIndex >= 0 && listRef.current) {
+      const items = listRef.current.querySelectorAll('[data-search-item]')
+      items[activeIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [activeIndex])
+
+  if (!open) return null
 
   return (
     <div className="fixed inset-0 z-[60]">
@@ -53,9 +86,15 @@ export default function SearchOverlay({ open, onClose }) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Search products..."
               className="flex-1 py-4 bg-transparent text-sm text-white/70 placeholder-white/20 focus:outline-none"
               aria-label="Search products"
+              aria-expanded={results.length > 0}
+              aria-controls="search-results"
+              aria-activedescendant={activeIndex >= 0 ? `search-item-${activeIndex}` : undefined}
+              role="combobox"
+              aria-autocomplete="list"
             />
             <button onClick={onClose} className="text-[0.6rem] text-white/20 hover:text-white/40 transition-colors px-2 py-1 border border-white/10 rounded flex-shrink-0">
               ESC
@@ -63,15 +102,19 @@ export default function SearchOverlay({ open, onClose }) {
           </div>
 
           {query.trim() && (
-            <div className="max-h-80 overflow-y-auto">
+            <div id="search-results" ref={listRef} role="listbox" className="max-h-80 overflow-y-auto">
               {results.length > 0 ? (
                 <div className="py-2">
-                  {results.map((product) => (
+                  {results.map((product, i) => (
                     <Link
                       key={product.id}
+                      data-search-item
+                      id={`search-item-${i}`}
+                      role="option"
+                      aria-selected={activeIndex === i}
                       to={`/product/${product.id}`}
                       onClick={onClose}
-                      className="flex items-center gap-4 px-4 sm:px-5 py-3 hover:bg-white/5 transition-colors"
+                      className={`flex items-center gap-4 px-4 sm:px-5 py-3 transition-colors ${activeIndex === i ? 'bg-white/10' : 'hover:bg-white/5'}`}
                     >
                       <div className="w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-white/10" style={{ background: product.color }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>

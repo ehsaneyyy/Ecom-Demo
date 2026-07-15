@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CartProvider } from './context/CartContext'
@@ -10,21 +10,22 @@ import Footer from './components/Footer'
 import Breadcrumbs from './components/Breadcrumbs'
 import AdminRoute from './components/AdminRoute'
 import { ToastContainer } from './components/Toast'
+import ScrollToTop from './components/ScrollToTop'
 
 const Home = lazy(() => import('./pages/Home'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
-const CategoryPage = lazy(() => import('./pages/CategoryPage'))
+const Category = lazy(() => import('./pages/Category'))
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
-const WishlistPage = lazy(() => import('./pages/WishlistPage'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
 const OrderHistory = lazy(() => import('./pages/OrderHistory'))
-const ContentPages = lazy(() => import('./pages/ContentPages'))
+const StaticContent = lazy(() => import('./pages/StaticContent'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
-const Dashboard = lazy(() => import('./admin/Dashboard'))
+const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./admin/AdminProducts'))
 const AdminOrders = lazy(() => import('./admin/AdminOrders'))
 const AdminCustomers = lazy(() => import('./admin/AdminCustomers'))
@@ -48,6 +49,10 @@ function Layout({ children }) {
   const isAdmin = pathname.startsWith('/admin')
   const isAuth = pathname === '/login' || pathname === '/register'
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   if (isAdmin) return <>{children}</>
 
   return (
@@ -58,6 +63,7 @@ function Layout({ children }) {
         {children}
       </main>
       {!isAuth && <Footer />}
+      {!isAuth && <ScrollToTop />}
       <ToastContainer />
     </>
   )
@@ -79,25 +85,25 @@ export default function App() {
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/product/:id" element={<ProductDetail />} />
-                      <Route path="/category/:slug" element={<CategoryPage />} />
+                      <Route path="/category/:slug" element={<Category />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/checkout" element={<Checkout />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
-                      <Route path="/wishlist" element={<WishlistPage />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
                       <Route path="/orders" element={<OrderHistory />} />
-                      <Route path="/about" element={<ContentPages />} />
-                      <Route path="/shipping" element={<ContentPages />} />
-                      <Route path="/returns" element={<ContentPages />} />
-                      <Route path="/faq" element={<ContentPages />} />
-                      <Route path="/privacy" element={<ContentPages />} />
-                      <Route path="/terms" element={<ContentPages />} />
+                      <Route path="/about" element={<StaticContent />} />
+                      <Route path="/shipping" element={<StaticContent />} />
+                      <Route path="/returns" element={<StaticContent />} />
+                      <Route path="/faq" element={<StaticContent />} />
+                      <Route path="/privacy" element={<StaticContent />} />
+                      <Route path="/terms" element={<StaticContent />} />
                       <Route path="/gift-cards" element={<ComingSoon title="Gift Cards" description="Gift cards coming soon." />} />
                       <Route path="/sustainability" element={<ComingSoon title="Sustainability" description="Full sustainability report coming soon." />} />
                       <Route path="/press" element={<ComingSoon title="Press" description="Press kit coming soon." />} />
                       <Route path="/contact" element={<ComingSoon title="Contact" description="Email us at hello@atelier.com." />} />
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                        <Route index element={<Dashboard />} />
+                        <Route index element={<AdminDashboard />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="customers" element={<AdminCustomers />} />

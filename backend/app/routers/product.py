@@ -6,7 +6,7 @@ from sqlalchemy import select as sa_select
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
-from app.auth import get_current_user, require_admin
+from app.auth_utils import get_current_user, require_admin
 from app.database import get_session
 from app.models import Product, Review, User
 from app.schemas import ProductCreate, ProductResponse, ProductUpdate, ReviewCreate, ReviewResponse

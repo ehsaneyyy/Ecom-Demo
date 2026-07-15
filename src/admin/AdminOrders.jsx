@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
+import { useToast } from '../components/Toast'
+import { statusColors } from '../constants/orderStatuses'
 
 export default function AdminOrders() {
   const { orders, updateOrderStatus } = useData()
+  const { show } = useToast()
   const [filter, setFilter] = useState('all')
   const [expandedOrder, setExpandedOrder] = useState(null)
-  const [toast, setToast] = useState(null)
-
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
-  }
 
   const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
 
@@ -24,16 +21,11 @@ export default function AdminOrders() {
 
   const handleStatusChange = (orderId, newStatus) => {
     updateOrderStatus(orderId, newStatus)
-    showToast(`Order ${orderId} updated to ${newStatus}`)
+    show(`Order ${orderId} updated to ${newStatus}`)
   }
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-2 bg-[#1a1a1a] border border-white/10 text-xs text-white/60 rounded-lg shadow-xl animate-slide-down">
-          {toast}
-        </div>
-      )}
 
       <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em]">Orders</h1>
 

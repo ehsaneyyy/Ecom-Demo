@@ -1,5 +1,3 @@
-import ssl
-
 from pydantic_settings import BaseSettings
 
 

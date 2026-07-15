@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { emailRegex } from '../utils/validate'
 
 export default function Register() {
   const { register } = useAuth()
@@ -14,7 +15,7 @@ export default function Register() {
     const errs = {}
     if (!form.name.trim()) errs.name = 'Name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email'
+    else if (!emailRegex.test(form.email)) errs.email = 'Invalid email'
     if (!form.password) errs.password = 'Password is required'
     else if (form.password.length < 8) errs.password = 'At least 8 characters'
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match'

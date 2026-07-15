@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.auth import create_access_token, get_current_user, hash_password, require_admin, verify_password
+from app.auth_utils import create_access_token, get_current_user, hash_password, require_admin, verify_password
 from app.config import settings
 from app.database import get_session
 from app.models import User

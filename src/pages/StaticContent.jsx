@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import Reveal from '../components/Reveal'
 
 const pages = {
   '/about': {
@@ -63,21 +64,25 @@ const pages = {
   },
 }
 
-export default function ContentPages() {
+export default function StaticContent() {
   const { pathname } = useLocation()
   const page = pages[pathname]
 
   if (!page) return null
 
   return (
-    <div className="animate-fade-in max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] mb-10 sm:mb-14">{page.title}</h1>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      <Reveal>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] mb-10 sm:mb-14">{page.title}</h1>
+      </Reveal>
       <div className="space-y-10 sm:space-y-14">
         {page.sections.map((s, i) => (
-          <div key={i}>
-            <h2 className="text-base sm:text-lg font-semibold text-white/70 mb-3">{s.heading}</h2>
-            <p className="text-sm text-white/30 leading-relaxed">{s.text}</p>
-          </div>
+          <Reveal key={i} delay={i * 60}>
+            <div>
+              <h2 className="text-base sm:text-lg font-semibold text-white/70 mb-3">{s.heading}</h2>
+              <p className="text-sm text-white/30 leading-relaxed">{s.text}</p>
+            </div>
+          </Reveal>
         ))}
       </div>
     </div>

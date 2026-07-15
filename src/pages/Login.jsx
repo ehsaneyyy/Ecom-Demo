@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { emailRegex } from '../utils/validate'
 
 export default function Login() {
   const { login, isAdmin } = useAuth()
@@ -13,7 +14,7 @@ export default function Login() {
   const validate = () => {
     const errs = {}
     if (!form.email.trim()) errs.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email'
+    else if (!emailRegex.test(form.email)) errs.email = 'Invalid email'
     if (!form.password) errs.password = 'Password is required'
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -29,7 +30,7 @@ export default function Login() {
     if (result.locked) {
       setServerError('Account temporarily locked due to too many failed attempts. Try again later.')
     } else if (result.success) {
-      navigate(isAdmin() ? '/admin' : '/')
+      navigate(isAdmin ? '/admin' : '/')
     } else {
       setServerError(result.error || 'Invalid email or password')
     }

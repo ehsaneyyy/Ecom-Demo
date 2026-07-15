@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.auth import get_current_user, require_admin
+from app.auth_utils import get_current_user, require_admin
 from app.database import get_session
 from app.models import Order, OrderItem, Product, User
 from app.schemas import OrderCreate, OrderItemResponse, OrderResponse
