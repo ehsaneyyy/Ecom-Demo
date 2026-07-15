@@ -3,7 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import SearchOverlay from './SearchOverlay'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const { count } = useCart()
@@ -49,7 +51,7 @@ export default function Navbar() {
   }
 
   const linkClass = (path) =>
-    `transition-colors ${isActive(path) ? 'text-white/80' : 'hover:text-white/80'}`
+    `transition-colors ${isActive(path) ? 'text-theme-text-secondary' : 'hover:text-theme-text-secondary'}`
 
   if (pathname.startsWith('/admin')) return null
 
@@ -62,19 +64,19 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5 transition-transform duration-300 ${hidden && mobileOpen ? '-translate-y-full' : ''}`}>
+      <nav className={`sticky top-0 z-50 bg-theme-bg/80 backdrop-blur-lg border-b border-theme-border transition-transform duration-300 ${hidden && mobileOpen ? '-translate-y-full' : ''}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-14 sm:h-16">
-          <Link to="/" className="text-sm font-semibold tracking-tight hover:text-white/70 transition-colors">
+          <Link to="/" className="text-sm font-semibold tracking-tight hover:text-theme-text-secondary transition-colors">
             ATELIER
           </Link>
 
-          <div className="hidden md:flex items-center gap-8 text-xs text-white/40">
+          <div className="hidden md:flex items-center gap-8 text-xs text-theme-text-faint">
             <Link to="/" className={linkClass('/')}>Home</Link>
             <Link to="/category/all" className={linkClass('/category')}>Shop</Link>
             <Link to="/about" className={linkClass('/about')}>About</Link>
             <button
               onClick={() => setSearchOpen(true)}
-              className="hover:text-white/80 transition-colors flex items-center gap-1.5"
+              className="hover:text-theme-text-secondary transition-colors flex items-center gap-1.5"
               aria-label="Search products"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -83,6 +85,7 @@ export default function Navbar() {
               </svg>
               Search
             </button>
+            <ThemeToggle />
             <Link to="/wishlist" className={`${linkClass('/wishlist')} relative`} aria-label="Wishlist">
               Wishlist
               {wishlistCount > 0 && (
@@ -95,9 +98,9 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="hover:text-white/80 transition-colors flex items-center gap-1.5"
+                  className="hover:text-theme-text-secondary transition-colors flex items-center gap-1.5"
                 >
-                  <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
+                  <div className="w-5 h-5 rounded-full bg-theme-surface flex items-center justify-center text-[0.5rem] text-theme-text-muted">
                     {currentUser.name.charAt(0)}
                   </div>
                   {currentUser.name.split(' ')[0]}
@@ -105,20 +108,20 @@ export default function Navbar() {
                 {menuOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#141414] border border-white/10 rounded-lg shadow-xl z-50 py-2">
-                      <div className="px-4 py-2 border-b border-white/5">
-                        <p className="text-xs text-white/70 font-medium">{currentUser.name}</p>
-                        <p className="text-[0.6rem] text-white/30">{currentUser.email}</p>
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-theme-surface border border-theme-border rounded-lg shadow-xl z-50 py-2">
+                      <div className="px-4 py-2 border-b border-theme-border">
+                        <p className="text-xs text-theme-text-secondary font-medium">{currentUser.name}</p>
+                        <p className="text-[0.6rem] text-theme-text-faint">{currentUser.email}</p>
                       </div>
                       {isAdmin && (
-                        <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
+                        <Link to="/admin" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-theme-text-faint hover:text-theme-text-secondary hover:bg-theme-surface-hover transition-colors">
                           Admin Panel
                         </Link>
                       )}
-                      <Link to="/orders" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
+                      <Link to="/orders" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-theme-text-faint hover:text-theme-text-secondary hover:bg-theme-surface-hover transition-colors">
                         My Orders
                       </Link>
-                      <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
+                      <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-xs text-theme-text-faint hover:text-theme-text-secondary hover:bg-theme-surface-hover transition-colors">
                         Sign Out
                       </button>
                     </div>
@@ -126,7 +129,7 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <Link to="/login" className="hover:text-white/80 transition-colors">Account</Link>
+              <Link to="/login" className="hover:text-theme-text-secondary transition-colors">Account</Link>
             )}
             <Link to="/cart" className={`${linkClass('/cart')} relative`}>
               Cart
@@ -138,10 +141,11 @@ export default function Navbar() {
             </Link>
           </div>
 
-          <div className="flex md:hidden items-center gap-3">
+          <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setSearchOpen(true)}
-              className="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors"
+              className="w-10 h-10 flex items-center justify-center text-theme-text-faint hover:text-theme-text-secondary transition-colors"
               aria-label="Search"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -149,7 +153,7 @@ export default function Navbar() {
                 <path d="m21 21-4.3-4.3" />
               </svg>
             </button>
-            <Link to="/cart" className="relative w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors" aria-label="Cart">
+            <Link to="/cart" className="relative w-10 h-10 flex items-center justify-center text-theme-text-faint hover:text-theme-text-secondary transition-colors" aria-label="Cart">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                 <line x1="3" y1="6" x2="21" y2="6" />
@@ -163,7 +167,7 @@ export default function Navbar() {
             </Link>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white/70 transition-colors"
+              className="w-10 h-10 flex items-center justify-center text-theme-text-faint hover:text-theme-text-secondary transition-colors"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? (
@@ -183,29 +187,29 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="absolute top-14 left-0 right-0 bg-[#0a0a0a] border-b border-white/5 shadow-2xl animate-slide-down">
+          <div className="absolute top-14 left-0 right-0 bg-theme-bg border-b border-theme-border shadow-2xl animate-slide-down">
             <div className="px-6 py-6 space-y-1">
-              <Link to="/" className={`block py-3 text-sm transition-colors ${isActive('/') ? 'text-white' : 'text-white/60 hover:text-white'}`}>Home</Link>
-              <Link to="/category/all" className={`block py-3 text-sm transition-colors ${isActive('/category') ? 'text-white' : 'text-white/60 hover:text-white'}`}>Shop</Link>
-              <Link to="/about" className={`block py-3 text-sm transition-colors ${isActive('/about') ? 'text-white' : 'text-white/60 hover:text-white'}`}>About</Link>
-              <Link to="/wishlist" className={`block py-3 text-sm transition-colors ${isActive('/wishlist') ? 'text-white' : 'text-white/60 hover:text-white'}`}>
-                Wishlist {wishlistCount > 0 && <span className="text-white/30">({wishlistCount})</span>}
+              <Link to="/" className={`block py-3 text-sm transition-colors ${isActive('/') ? 'text-white' : 'text-theme-text-muted hover:text-white'}`}>Home</Link>
+              <Link to="/category/all" className={`block py-3 text-sm transition-colors ${isActive('/category') ? 'text-white' : 'text-theme-text-muted hover:text-white'}`}>Shop</Link>
+              <Link to="/about" className={`block py-3 text-sm transition-colors ${isActive('/about') ? 'text-white' : 'text-theme-text-muted hover:text-white'}`}>About</Link>
+              <Link to="/wishlist" className={`block py-3 text-sm transition-colors ${isActive('/wishlist') ? 'text-white' : 'text-theme-text-muted hover:text-white'}`}>
+                Wishlist {wishlistCount > 0 && <span className="text-theme-text-faint">({wishlistCount})</span>}
               </Link>
-              <div className="border-t border-white/5 my-3" />
+              <div className="border-t border-theme-border my-3" />
               {isLoggedIn ? (
                 <>
                   <div className="py-3">
-                    <p className="text-sm text-white/80 font-medium">{currentUser.name}</p>
-                    <p className="text-xs text-white/30">{currentUser.email}</p>
+                    <p className="text-sm text-theme-text-secondary font-medium">{currentUser.name}</p>
+                    <p className="text-xs text-theme-text-faint">{currentUser.email}</p>
                   </div>
                   {isAdmin && (
-                    <Link to="/admin" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Admin Panel</Link>
+                    <Link to="/admin" className="block py-3 text-sm text-theme-text-muted hover:text-white transition-colors">Admin Panel</Link>
                   )}
-                  <Link to="/orders" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">My Orders</Link>
-                  <button onClick={handleLogout} className="block w-full text-left py-3 text-sm text-white/60 hover:text-white transition-colors">Sign Out</button>
+                  <Link to="/orders" className="block py-3 text-sm text-theme-text-muted hover:text-white transition-colors">My Orders</Link>
+                  <button onClick={handleLogout} className="block w-full text-left py-3 text-sm text-theme-text-muted hover:text-white transition-colors">Sign Out</button>
                 </>
               ) : (
-                <Link to="/login" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Account</Link>
+                <Link to="/login" className="block py-3 text-sm text-theme-text-muted hover:text-white transition-colors">Account</Link>
               )}
             </div>
           </div>

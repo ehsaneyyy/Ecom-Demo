@@ -33,19 +33,19 @@ export default function Category() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       <Reveal>
         <div className="mb-8 sm:mb-12">
-          <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">Collection</p>
+          <p className="text-[0.6rem] tracking-[0.3em] uppercase text-theme-text-faint mb-2">Collection</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em]">{pageTitle}</h1>
         </div>
       </Reveal>
 
       <Reveal delay={80}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-12">
-          <p className="text-xs text-white/20">{filtered.length} product{filtered.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-theme-text-faint">{filtered.length} product{filtered.length !== 1 ? 's' : ''}</p>
           <div className="flex flex-wrap items-center gap-3">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 bg-white/5 border border-white/10 text-xs text-white/50 focus:outline-none focus:border-white/20 transition-colors min-h-[40px]"
+              className="px-3 py-2 bg-theme-surface border border-theme-border text-xs text-theme-text-muted focus:outline-none focus:border-theme-border-hover transition-colors min-h-[40px]"
             >
               <option value="featured">Featured</option>
               <option value="price-low">Price: Low to High</option>
@@ -71,8 +71,8 @@ export default function Category() {
       ) : (
         <Reveal>
           <div className="text-center py-20">
-            <p className="text-sm text-white/20 mb-4">No products found in this category.</p>
-            <Link to="/category/all" className="text-xs text-white/30 hover:text-white/50 transition-colors">
+            <p className="text-sm text-theme-text-faint mb-4">No products found in this category.</p>
+            <Link to="/category/all" className="text-xs text-theme-text-faint hover:text-theme-text-muted transition-colors">
               Browse all products →
             </Link>
           </div>

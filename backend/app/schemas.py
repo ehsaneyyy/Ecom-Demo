@@ -38,6 +38,7 @@ class ProductCreate(BaseModel):
     color: str = "#1a1a1a"
     colors: list[str] | None = None
     sizes: list[str] | None = None
+    images: list[str] | None = None
     stock: int = 0
 
 
@@ -51,6 +52,7 @@ class ProductUpdate(BaseModel):
     color: str | None = None
     colors: list[str] | None = None
     sizes: list[str] | None = None
+    images: list[str] | None = None
     stock: int | None = None
 
 
@@ -65,6 +67,7 @@ class ProductResponse(BaseModel):
     color: str
     colors: list[str] | None = None
     sizes: list[str] | None = None
+    images: list[str] = []
     stock: int
     rating: float | None = None
     reviews: list["ReviewResponse"] = []
@@ -87,6 +90,7 @@ class OrderResponse(BaseModel):
     total: float
     status: str
     shipping_address: str
+    payment_session_id: str | None = None
     created_at: str
     items: list["OrderItemResponse"] = []
 

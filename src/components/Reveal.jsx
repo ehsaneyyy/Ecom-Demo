@@ -1,31 +1,28 @@
-import { useScrollReveal } from '../hooks/useScrollReveal'
+import { motion } from 'framer-motion'
 
-const directions = {
-  up: { hidden: 'opacity-0 translate-y-8', visible: 'opacity-100 translate-y-0' },
-  down: { hidden: 'opacity-0 -translate-y-8', visible: 'opacity-100 translate-y-0' },
-  left: { hidden: 'opacity-0 translate-x-8', visible: 'opacity-100 translate-x-0' },
-  right: { hidden: 'opacity-0 -translate-x-8', visible: 'opacity-100 translate-x-0' },
-  scale: { hidden: 'opacity-0 scale-95', visible: 'opacity-100 scale-100' },
+const variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+  left: { opacity: 0, x: -30 },
+  right: { opacity: 0, x: 30 },
 }
 
-export default function Reveal({
-  children,
-  direction = 'up',
-  delay = 0,
-  duration = 700,
-  className = '',
-  as: Tag = 'div',
-}) {
-  const [ref, isVisible] = useScrollReveal()
-  const dir = directions[direction] || directions.up
-
+export default function Reveal({ children, direction, delay = 0, className = '' }) {
   return (
-    <Tag
-      ref={ref}
-      className={`transition-all ease-out ${isVisible ? dir.visible : dir.hidden} ${className}`}
-      style={{ transitionDuration: `${duration}ms`, transitionDelay: `${delay}ms` }}
+    <motion.div
+      initial={direction ? variants[direction] : variants.hidden}
+      whileInView="visible"
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, delay: delay / 1000, ease: [0.25, 0.1, 0.25, 1] }}
+      variants={{
+        hidden: variants.hidden,
+        visible: variants.visible,
+        left: variants.visible,
+        right: variants.visible,
+      }}
+      className={className}
     >
       {children}
-    </Tag>
+    </motion.div>
   )
 }

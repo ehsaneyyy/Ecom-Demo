@@ -32,6 +32,7 @@ class Product(SQLModel, table=True):
     color: str = "#1a1a1a"
     colors: str | None = None
     sizes: str | None = None
+    images: str | None = None
     stock: int = Field(default=0)
     rating: float | None = None
 
@@ -47,6 +48,7 @@ class Order(SQLModel, table=True):
     total: float
     status: str = Field(default="pending")
     shipping_address: str
+    payment_session_id: str | None = None
     created_at: date = Field(default_factory=date.today)
 
     user: User | None = Relationship(back_populates="orders")

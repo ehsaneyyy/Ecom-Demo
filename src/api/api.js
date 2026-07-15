@@ -28,6 +28,14 @@ export const productApi = {
   delete: (id) =>
     apiClient.delete(`/product/${id}`).then((r) => r.data),
 
+  uploadImage: (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiClient.post('/product/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data)
+  },
+
   addReview: (productId, data) =>
     apiClient.post(`/product/${productId}/review`, data).then((r) => r.data),
 }
@@ -44,4 +52,9 @@ export const orderApi = {
 
   updateStatus: (id, status) =>
     apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),
+}
+
+export const paymentApi = {
+  createCheckoutSession: (shippingAddress, items) =>
+    apiClient.post('/payments/checkout', { shipping_address: shippingAddress, items }).then((r) => r.data),
 }

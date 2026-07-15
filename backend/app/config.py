@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiry_minutes: int = 1440
     admin_secret_key: str = "ATELIER-ADMIN-2026"
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    frontend_url: str = "http://localhost:5173"
 
     model_config = {"env_file": ".env"}
 

@@ -8,6 +8,7 @@ function transformProduct(p) {
   return {
     ...p,
     compareAtPrice: p.compare_at_price,
+    images: p.images || [],
     reviews: (p.reviews || []).map((r) => ({
       ...r,
       author: r.user_name,

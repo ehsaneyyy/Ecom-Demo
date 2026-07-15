@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { useCart } from '../context/CartContext'
@@ -22,8 +22,18 @@ export default function ProductDetail() {
     path: `/product/${id}`,
   })
 
+  useEffect(() => {
+    if (!product) return
+    const key = 'atelier-recently-viewed'
+    const stored = JSON.parse(localStorage.getItem(key) || '[]')
+    const filtered = stored.filter((p) => p.id !== product.id)
+    filtered.unshift({ id: product.id, name: product.name, price: product.price, images: product.images, color: product.color, category: product.category })
+    localStorage.setItem(key, JSON.stringify(filtered.slice(0, 10)))
+  }, [product])
+
   const [selectedColor, setSelectedColor] = useState(null)
   const [selectedSize, setSelectedSize] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const [expandedReview, setExpandedReview] = useState(null)
@@ -37,14 +47,17 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="animate-fade-in min-h-[60vh] flex flex-col items-center justify-center px-4">
-        <p className="text-sm text-white/20 mb-6">Product not found</p>
-        <Link to="/category/all" className="text-xs text-white/30 hover:text-white/50 transition-colors">Back to shop</Link>
+        <p className="text-sm text-theme-text-faint mb-6">Product not found</p>
+        <Link to="/category/all" className="text-xs text-theme-text-faint hover:text-theme-text-muted transition-colors">Back to shop</Link>
       </div>
     )
   }
 
   const reviews = product.reviews || []
-  const relatedProducts = products.filter((p) => p.id !== product.id).slice(0, 4)
+  const relatedProducts = products
+    .filter((p) => p.id !== product.id && p.category === product.category)
+    .slice(0, 4)
+  const hasImages = product.images && product.images.length > 0
   const hasColors = product.colors && product.colors.length > 0
   const hasSizes = product.sizes && product.sizes.length > 0
   const needsVariantSelection = hasColors || hasSizes
@@ -91,9 +104,30 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16">
           <Reveal direction="left">
             <div className="space-y-3 sm:space-y-4">
-              <div className="aspect-square rounded-lg overflow-hidden flex items-center justify-center" style={{ background: product.color }}>
-                <span className="text-4xl sm:text-5xl font-bold text-white/[0.06] text-center px-8 leading-tight">{product.name}</span>
+              <div className="aspect-square rounded-lg overflow-hidden flex items-center justify-center" style={{ background: hasImages ? 'transparent' : product.color }}>
+                {hasImages ? (
+                  <img
+                    src={product.images[selectedImage]}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl sm:text-5xl font-bold text-white/[0.06] text-center px-8 leading-tight">{product.name}</span>
+                )}
               </div>
+              {hasImages && product.images.length > 1 && (
+                <div className="flex gap-2">
+                  {product.images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedImage(i)}
+                      className={`w-16 h-16 sm:w-20 sm:h-20 rounded overflow-hidden flex-shrink-0 border-2 transition-colors ${selectedImage === i ? 'border-theme-border' : 'border-transparent hover:border-theme-border'}`}
+                    >
+                      <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
               {hasColors && product.colors.length > 1 && (
                 <div className="flex gap-2">
                   {product.colors.map((c, i) => (
@@ -107,37 +141,37 @@ export default function ProductDetail() {
           <Reveal direction="right">
             <div className="space-y-6 sm:space-y-8">
               <div>
-                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">{product.category}</p>
+                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-theme-text-faint mb-2">{product.category}</p>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em] mb-3 sm:mb-4">{product.name}</h1>
                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <p className="text-xl sm:text-2xl text-white/50">${product.price}</p>
+                  <p className="text-xl sm:text-2xl text-theme-text-muted">${product.price}</p>
                   {product.compareAtPrice && (
-                    <p className="text-sm text-white/20 line-through">${product.compareAtPrice}</p>
+                    <p className="text-sm text-theme-text-faint line-through">${product.compareAtPrice}</p>
                   )}
                 </div>
                 {averageRating && (
-                  <div className="flex items-center gap-2 text-sm text-white/30">
+                  <div className="flex items-center gap-2 text-sm text-theme-text-faint">
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <span key={s} className={`text-sm ${s <= Math.round(averageRating) ? 'text-[#c8a97e]' : 'text-white/10'}`}>★</span>
+                        <span key={s} className={`text-sm ${s <= Math.round(averageRating) ? 'text-[#c8a97e]' : 'text-theme-text-faint'}`}>★</span>
                       ))}
                     </div>
-                    <span className="text-xs text-white/30">{averageRating} ({reviews.length} reviews)</span>
+                    <span className="text-xs text-theme-text-faint">{averageRating} ({reviews.length} reviews)</span>
                   </div>
                 )}
               </div>
 
-              <p className="text-sm text-white/30 leading-relaxed">{product.description}</p>
+              <p className="text-sm text-theme-text-faint leading-relaxed">{product.description}</p>
 
               {hasColors && (
                 <div>
-                  <p className="text-xs text-white/25 mb-3">Color{selectedColor ? `: ${selectedColor}` : ''}</p>
+                  <p className="text-xs text-theme-text-faint mb-3">Color{selectedColor ? `: ${selectedColor}` : ''}</p>
                   <div className="flex gap-2">
                     {product.colors.map((color) => (
                       <button
                         key={color}
                         onClick={() => setSelectedColor(color)}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all ${selectedColor === color ? 'border-white/50 scale-110' : 'border-white/10 hover:border-white/20'}`}
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all ${selectedColor === color ? 'border-theme-border0 scale-110' : 'border-theme-border hover:border-theme-border-hover'}`}
                         style={{ backgroundColor: color }}
                         aria-label={`Color: ${color}`}
                       />
@@ -148,13 +182,13 @@ export default function ProductDetail() {
 
               {hasSizes && (
                 <div>
-                  <p className="text-xs text-white/25 mb-3">Size{selectedSize ? `: ${selectedSize}` : ''}</p>
+                  <p className="text-xs text-theme-text-faint mb-3">Size{selectedSize ? `: ${selectedSize}` : ''}</p>
                   <div className="flex flex-wrap gap-2">
                     {product.sizes.map((size) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`min-w-[44px] h-11 px-4 border text-xs transition-colors ${selectedSize === size ? 'border-white/30 text-white/80 bg-white/5' : 'border-white/10 text-white/30 hover:border-white/20'}`}
+                        className={`min-w-[44px] h-11 px-4 border text-xs transition-colors ${selectedSize === size ? 'border-theme-border text-theme-text-secondary bg-theme-surface' : 'border-theme-border text-theme-text-faint hover:border-theme-border-hover'}`}
                       >
                         {size}
                       </button>
@@ -164,11 +198,11 @@ export default function ProductDetail() {
               )}
 
               <div className="space-y-3">
-                <p className="text-xs text-white/25">Quantity</p>
+                <p className="text-xs text-theme-text-faint">Quantity</p>
                 <div className="flex items-center gap-0 w-fit">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-11 h-11 flex items-center justify-center border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-colors text-lg" aria-label="Decrease quantity">−</button>
-                  <span className="w-12 h-11 flex items-center justify-center text-sm text-white/50 border-y border-white/10">{quantity}</span>
-                  <button onClick={() => setQuantity(Math.min(quantity + 1, product.stock))} disabled={quantity >= product.stock} className="w-11 h-11 flex items-center justify-center border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-colors text-lg disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Increase quantity">+</button>
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-11 h-11 flex items-center justify-center border border-theme-border text-theme-text-faint hover:text-theme-text-secondary hover:border-theme-border-hover transition-colors text-lg" aria-label="Decrease quantity">−</button>
+                  <span className="w-12 h-11 flex items-center justify-center text-sm text-theme-text-muted border-y border-theme-border">{quantity}</span>
+                  <button onClick={() => setQuantity(Math.min(quantity + 1, product.stock))} disabled={quantity >= product.stock} className="w-11 h-11 flex items-center justify-center border border-theme-border text-theme-text-faint hover:text-theme-text-secondary hover:border-theme-border-hover transition-colors text-lg disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Increase quantity">+</button>
                 </div>
                 {product.stock <= 5 && product.stock > 0 && (
                   <p className="text-[0.6rem] text-[#c8a97e]">Only {product.stock} left in stock</p>
@@ -185,7 +219,7 @@ export default function ProductDetail() {
                 </button>
                 <button
                   onClick={() => toggleWishlist(product)}
-                  className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50'}`}
+                  className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-theme-border text-theme-text-faint hover:border-theme-border-hover hover:text-theme-text-muted'}`}
                   aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -200,7 +234,7 @@ export default function ProductDetail() {
                 </p>
               )}
 
-              <div className="flex items-center gap-4 py-5 border-y border-white/5 text-[0.6rem] sm:text-xs text-white/25">
+              <div className="flex items-center gap-4 py-5 border-y border-theme-border text-[0.6rem] sm:text-xs text-theme-text-faint">
                 <span className="flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="1" y="3" width="15" height="13" />
@@ -227,10 +261,10 @@ export default function ProductDetail() {
             <Reveal>
               <div className="flex items-end justify-between mb-8 sm:mb-12">
                 <div>
-                  <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">Reviews</p>
+                  <p className="text-[0.6rem] tracking-[0.3em] uppercase text-theme-text-faint mb-2">Reviews</p>
                   <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em]">{reviews.length} Reviews</h2>
                   {averageRating && (
-                    <p className="text-sm text-white/30 mt-1">Average: {averageRating} / 5</p>
+                    <p className="text-sm text-theme-text-faint mt-1">Average: {averageRating} / 5</p>
                   )}
                 </div>
               </div>
@@ -238,20 +272,20 @@ export default function ProductDetail() {
             <div className="space-y-0">
               {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, i) => (
                 <Reveal key={review.id} delay={i * 60}>
-                  <div className="border-b border-white/5 py-6 sm:py-8">
+                  <div className="border-b border-theme-border py-6 sm:py-8">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[0.6rem] text-white/40">
+                        <div className="w-8 h-8 rounded-full bg-theme-surface flex items-center justify-center text-[0.6rem] text-theme-text-faint">
                           {review.author.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm text-white/60">{review.author}</p>
-                          <p className="text-[0.6rem] text-white/20">{new Date(review.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          <p className="text-sm text-theme-text-muted">{review.author}</p>
+                          <p className="text-[0.6rem] text-theme-text-faint">{new Date(review.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
-                          <span key={s} className={`text-sm ${s <= review.rating ? 'text-[#c8a97e]' : 'text-white/10'}`}>★</span>
+                          <span key={s} className={`text-sm ${s <= review.rating ? 'text-[#c8a97e]' : 'text-theme-text-faint'}`}>★</span>
                         ))}
                       </div>
                     </div>
@@ -261,9 +295,9 @@ export default function ProductDetail() {
                         Verified Purchase
                       </p>
                     )}
-                    <p className={`text-sm text-white/40 leading-relaxed ${expandedReview !== review.id ? 'line-clamp-3' : ''}`}>{review.text}</p>
+                    <p className={`text-sm text-theme-text-faint leading-relaxed ${expandedReview !== review.id ? 'line-clamp-3' : ''}`}>{review.text}</p>
                     {review.text.length > 150 && (
-                      <button onClick={() => setExpandedReview(expandedReview === review.id ? null : review.id)} className="text-[0.6rem] text-white/20 hover:text-white/40 transition-colors mt-2">
+                      <button onClick={() => setExpandedReview(expandedReview === review.id ? null : review.id)} className="text-[0.6rem] text-theme-text-faint hover:text-theme-text-faint transition-colors mt-2">
                         {expandedReview === review.id ? 'Show less' : 'Read more'}
                       </button>
                     )}
@@ -272,7 +306,7 @@ export default function ProductDetail() {
               ))}
             </div>
             {reviews.length > 3 && !showAllReviews && (
-              <button onClick={() => setShowAllReviews(true)} className="w-full py-4 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors mt-4">
+              <button onClick={() => setShowAllReviews(true)} className="w-full py-4 border border-theme-border text-xs text-theme-text-faint hover:text-theme-text-muted hover:border-theme-border-hover transition-colors mt-4">
                 Show all {reviews.length} reviews
               </button>
             )}
@@ -282,23 +316,23 @@ export default function ProductDetail() {
         {currentUser && (
           <Reveal>
             <section className="mt-16 sm:mt-24">
-              <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">Write a Review</p>
+              <p className="text-[0.6rem] tracking-[0.3em] uppercase text-theme-text-faint mb-2">Write a Review</p>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] mb-8">Share Your Thoughts</h2>
               {reviewSuccess ? (
-                <div className="bg-[#141414] rounded-lg border border-white/5 p-6 text-center">
+                <div className="bg-theme-surface rounded-lg border border-theme-border p-6 text-center">
                   <p className="text-sm text-[#4ade80]/70">Review submitted successfully</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmitReview} className="bg-[#141414] rounded-lg border border-white/5 p-6 space-y-5">
+                <form onSubmit={handleSubmitReview} className="bg-theme-surface rounded-lg border border-theme-border p-6 space-y-5">
                   <div>
-                    <p className="text-xs text-white/25 mb-3">Rating</p>
+                    <p className="text-xs text-theme-text-faint mb-3">Rating</p>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <button
                           key={s}
                           type="button"
                           onClick={() => setReviewRating(s)}
-                          className={`text-xl transition-colors ${s <= reviewRating ? 'text-[#c8a97e]' : 'text-white/10 hover:text-white/20'}`}
+                          className={`text-xl transition-colors ${s <= reviewRating ? 'text-[#c8a97e]' : 'text-theme-text-faint hover:text-theme-text-faint'}`}
                         >
                           ★
                         </button>
@@ -306,13 +340,13 @@ export default function ProductDetail() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-white/25 mb-1.5">Your Review</label>
+                    <label className="block text-xs text-theme-text-faint mb-1.5">Your Review</label>
                     <textarea
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
                       rows={4}
                       placeholder="What did you like or dislike about this product?"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 text-sm text-white/70 placeholder-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-theme-surface border border-theme-border text-sm text-theme-text-secondary placeholder-theme-text-faint focus:outline-none focus:border-theme-border-hover transition-colors resize-none"
                     />
                   </div>
                   {reviewError && <p className="text-xs text-red-400/70" role="alert">{reviewError}</p>}
@@ -334,9 +368,9 @@ export default function ProductDetail() {
         {!currentUser && (
           <Reveal>
             <section className="mt-16 sm:mt-24">
-              <div className="bg-[#141414] rounded-lg border border-white/5 p-6 text-center">
-                <p className="text-sm text-white/30 mb-4">Sign in to write a review</p>
-                <Link to="/login" className="inline-flex items-center px-6 py-3 border border-white/15 text-xs tracking-[0.15em] uppercase text-white/50 hover:bg-white hover:text-black transition-all duration-500">
+              <div className="bg-theme-surface rounded-lg border border-theme-border p-6 text-center">
+                <p className="text-sm text-theme-text-faint mb-4">Sign in to write a review</p>
+                <Link to="/login" className="inline-flex items-center px-6 py-3 border border-theme-border text-xs tracking-[0.15em] uppercase text-theme-text-muted hover:bg-white hover:text-black transition-all duration-500">
                   Sign In
                 </Link>
               </div>
@@ -347,24 +381,64 @@ export default function ProductDetail() {
         {relatedProducts.length > 0 && (
           <section className="mt-16 sm:mt-24">
             <Reveal>
-              <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">You may also like</p>
+              <p className="text-[0.6rem] tracking-[0.3em] uppercase text-theme-text-faint mb-2">You may also like</p>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] mb-8 sm:mb-12">Related Products</h2>
             </Reveal>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
               {relatedProducts.map((rp, i) => (
                 <Reveal key={rp.id} delay={i * 80}>
                   <Link to={`/product/${rp.id}`} className="group block">
-                    <div className="aspect-[4/5] rounded-sm mb-3 sm:mb-4 flex items-center justify-center overflow-hidden group-hover:scale-[1.02] transition-transform duration-500" style={{ background: rp.color }}>
-                      <span className="text-[0.5rem] tracking-[0.2em] uppercase text-white/10 text-center px-2">{rp.name}</span>
+                    <div className="aspect-[4/5] rounded-sm mb-3 sm:mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform duration-500" style={{ background: rp.images?.length ? 'transparent' : rp.color }}>
+                      {rp.images?.length ? (
+                        <img src={rp.images[0]} alt={rp.name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-[0.5rem] tracking-[0.2em] uppercase text-theme-text-faint text-center px-2">{rp.name}</span>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-sm text-white/70 mb-1 group-hover:text-white/90 transition-colors truncate">{rp.name}</h3>
-                    <p className="text-sm text-white/30">${rp.price}</p>
+                    <h3 className="text-sm text-theme-text-secondary mb-1 group-hover:text-theme-text transition-colors truncate">{rp.name}</h3>
+                    <p className="text-sm text-theme-text-faint">${rp.price}</p>
                   </Link>
                 </Reveal>
               ))}
             </div>
           </section>
         )}
+
+        {(() => {
+          const recent = JSON.parse(localStorage.getItem('atelier-recently-viewed') || '[]')
+            .filter((p) => p.id !== product.id)
+            .slice(0, 4)
+          if (recent.length === 0) return null
+          return (
+            <section className="mt-16 sm:mt-24">
+              <Reveal>
+                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-theme-text-faint mb-2">Browsing history</p>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] mb-8 sm:mb-12">Recently Viewed</h2>
+              </Reveal>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
+                {recent.map((rp, i) => (
+                  <Reveal key={rp.id} delay={i * 80}>
+                    <Link to={`/product/${rp.id}`} className="group block">
+                      <div className="aspect-[4/5] rounded-sm mb-3 sm:mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform duration-500" style={{ background: rp.images?.length ? 'transparent' : rp.color }}>
+                        {rp.images?.length ? (
+                          <img src={rp.images[0]} alt={rp.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-[0.5rem] tracking-[0.2em] uppercase text-theme-text-faint text-center px-2">{rp.name}</span>
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-sm text-theme-text-secondary mb-1 group-hover:text-theme-text transition-colors truncate">{rp.name}</h3>
+                      <p className="text-sm text-theme-text-faint">${rp.price}</p>
+                    </Link>
+                  </Reveal>
+                ))}
+              </div>
+            </section>
+          )
+        })()}
       </div>
     </>
   )

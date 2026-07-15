@@ -1,3 +1,6 @@
+import logging
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +12,7 @@ from app.models import Order, OrderItem, Product, User
 from app.schemas import OrderCreate, OrderItemResponse, OrderResponse
 
 router = APIRouter(prefix="/api/order", tags=["order"])
+logger = logging.getLogger(__name__)
 
 
 class OrderItemInput(BaseModel):
@@ -28,6 +32,7 @@ def order_to_response(order: Order) -> OrderResponse:
         total=order.total,
         status=order.status,
         shipping_address=order.shipping_address,
+        payment_session_id=order.payment_session_id,
         created_at=str(order.created_at),
         items=[
             OrderItemResponse(
@@ -87,6 +92,7 @@ async def create_order(
     await session.commit()
     await session.refresh(order, ["items"])
 
+    logger.info(f"Order {order.id} created, total: ${total:.2f}")
     return order_to_response(order)
 
 

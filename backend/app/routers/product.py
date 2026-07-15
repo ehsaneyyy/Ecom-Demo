@@ -1,22 +1,29 @@
 import json
+import os
+import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select as sa_select
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from app.auth_utils import get_current_user, require_admin
+from app.config import settings
 from app.database import get_session
 from app.models import Product, Review, User
 from app.schemas import ProductCreate, ProductResponse, ProductUpdate, ReviewCreate, ReviewResponse
 
 router = APIRouter(prefix="/api/product", tags=["product"])
 
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 def product_to_response(product: Product, reviews: list[Review] | None = None) -> ProductResponse:
     colors = json.loads(product.colors) if product.colors else None
     sizes = json.loads(product.sizes) if product.sizes else None
+    images = json.loads(product.images) if product.images else []
     avg_rating = None
     review_list = []
     if reviews:
@@ -44,6 +51,7 @@ def product_to_response(product: Product, reviews: list[Review] | None = None) -
         color=product.color,
         colors=colors,
         sizes=sizes,
+        images=images,
         stock=product.stock,
         rating=product.rating if product.rating else avg_rating,
         reviews=review_list,
@@ -68,7 +76,7 @@ async def list_products(
     elif sort == "price-high":
         query = query.order_by(Product.price.desc())
     elif sort == "newest":
-        query = query.order_by(Product.created_at.desc() if hasattr(Product, "created_at") else Product.id.desc())
+        query = query.order_by(Product.id.desc())
     else:
         query = query.order_by(Product.id)
 
@@ -107,6 +115,7 @@ async def create_product(
 ):
     colors_json = json.dumps(body.colors) if body.colors else None
     sizes_json = json.dumps(body.sizes) if body.sizes else None
+    images_json = json.dumps(body.images) if body.images else None
 
     product = Product(
         name=body.name,
@@ -118,6 +127,7 @@ async def create_product(
         color=body.color,
         colors=colors_json,
         sizes=sizes_json,
+        images=images_json,
         stock=body.stock,
     )
     session.add(product)
@@ -143,6 +153,8 @@ async def update_product(
         update_data["colors"] = json.dumps(update_data["colors"])
     if "sizes" in update_data and update_data["sizes"] is not None:
         update_data["sizes"] = json.dumps(update_data["sizes"])
+    if "images" in update_data and update_data["images"] is not None:
+        update_data["images"] = json.dumps(update_data["images"])
 
     for key, value in update_data.items():
         setattr(product, key, value)
@@ -164,9 +176,39 @@ async def delete_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    if product.images:
+        for img_url in json.loads(product.images):
+            if img_url.startswith("/api/uploads/"):
+                filename = img_url.split("/api/uploads/")[-1]
+                filepath = os.path.join(UPLOAD_DIR, filename)
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+
     await session.delete(product)
     await session.commit()
     return {"detail": "Product deleted"}
+
+
+@router.post("/upload")
+async def upload_image(
+    file: UploadFile = File(...),
+    admin: User = Depends(require_admin),
+):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    ext = file.filename.rsplit(".", 1)[-1] if "." in (file.filename or "") else "jpg"
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+
+    with open(filepath, "wb") as f:
+        f.write(content)
+
+    return {"url": f"/api/uploads/{filename}"}
 
 
 @router.post("/{product_id}/review", response_model=ReviewResponse)
