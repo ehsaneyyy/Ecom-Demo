@@ -5,13 +5,13 @@ export default function NotFound() {
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
       <Reveal>
-        <p className="text-6xl sm:text-8xl font-bold text-theme-text-faint mb-4">404</p>
+        <p className="text-6xl sm:text-8xl font-bold text-white/30 mb-4">404</p>
       </Reveal>
       <Reveal delay={100}>
         <h1 className="text-xl sm:text-2xl font-bold tracking-[-0.03em] mb-3">Page not found</h1>
       </Reveal>
       <Reveal delay={200}>
-        <p className="text-sm text-theme-text-faint mb-8 max-w-sm">
+        <p className="text-sm text-white/30 mb-8 max-w-sm">
           The page you're looking for doesn't exist or has been moved.
         </p>
       </Reveal>

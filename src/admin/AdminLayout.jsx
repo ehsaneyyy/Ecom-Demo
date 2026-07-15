@@ -12,11 +12,11 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-theme-bg">
+    <div className="flex h-screen bg-[#0a0a0a]">
       <div className="hidden md:flex md:w-56 md:flex-shrink-0">
-        <div className="w-56 bg-theme-surface border-r border-theme-border flex flex-col">
-          <div className="h-16 flex items-center px-6 border-b border-theme-border">
-            <span className="text-xs font-semibold tracking-[0.2em] text-theme-text-muted">ATELIER ADMIN</span>
+        <div className="w-56 bg-[#141414] border-r border-white/10 flex flex-col">
+          <div className="h-16 flex items-center px-6 border-b border-white/10">
+            <span className="text-xs font-semibold tracking-[0.2em] text-white/50">ATELIER ADMIN</span>
           </div>
           <nav className="flex-1 py-4 px-3 space-y-1">
             {nav.map((item) => (
@@ -26,7 +26,7 @@ export default function AdminLayout() {
                 end={item.end}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                    isActive ? 'bg-theme-surface text-white/90' : 'text-theme-text-faint hover:text-theme-text-muted hover:bg-theme-surface-hover'
+                    isActive ? 'bg-[#141414] text-white/90' : 'text-white/30 hover:text-white/50 hover:bg-white/5'
                   }`
                 }
               >
@@ -37,8 +37,8 @@ export default function AdminLayout() {
               </NavLink>
             ))}
           </nav>
-          <div className="p-4 border-t border-theme-border">
-            <NavLink to="/" className="flex items-center gap-2 text-xs text-theme-text-faint hover:text-theme-text-faint transition-colors">
+          <div className="p-4 border-t border-white/10">
+            <NavLink to="/" className="flex items-center gap-2 text-xs text-white/30 hover:text-white/30 transition-colors">
               ← Back to Store
             </NavLink>
           </div>
@@ -48,9 +48,9 @@ export default function AdminLayout() {
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-64 bg-theme-surface border-r border-theme-border shadow-2xl animate-slide-down">
-            <div className="h-16 flex items-center px-6 border-b border-theme-border">
-              <span className="text-xs font-semibold tracking-[0.2em] text-theme-text-muted">ATELIER ADMIN</span>
+          <div className="absolute left-0 top-0 bottom-0 w-64 bg-[#141414] border-r border-white/10 shadow-2xl animate-slide-down">
+            <div className="h-16 flex items-center px-6 border-b border-white/10">
+              <span className="text-xs font-semibold tracking-[0.2em] text-white/50">ATELIER ADMIN</span>
             </div>
             <nav className="py-4 px-3 space-y-1">
               {nav.map((item) => (
@@ -61,7 +61,7 @@ export default function AdminLayout() {
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                      isActive ? 'bg-theme-surface text-white/90' : 'text-theme-text-faint hover:text-theme-text-muted hover:bg-theme-surface-hover'
+                      isActive ? 'bg-[#141414] text-white/90' : 'text-white/30 hover:text-white/50 hover:bg-white/5'
                     }`
                   }
                 >
@@ -72,8 +72,8 @@ export default function AdminLayout() {
                 </NavLink>
               ))}
             </nav>
-            <div className="p-4 border-t border-theme-border">
-              <NavLink to="/" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2 text-xs text-theme-text-faint hover:text-theme-text-faint transition-colors">
+            <div className="p-4 border-t border-white/10">
+              <NavLink to="/" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2 text-xs text-white/30 hover:text-white/30 transition-colors">
                 ← Back to Store
               </NavLink>
             </div>
@@ -82,10 +82,10 @@ export default function AdminLayout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-theme-border flex items-center px-4 sm:px-6 gap-4 flex-shrink-0">
+        <header className="h-16 border-b border-white/10 flex items-center px-4 sm:px-6 gap-4 flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="md:hidden w-10 h-10 flex items-center justify-center text-theme-text-faint hover:text-theme-text-secondary transition-colors"
+            className="md:hidden w-10 h-10 flex items-center justify-center text-white/30 hover:text-white/70 transition-colors"
             aria-label="Open navigation"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -94,10 +94,10 @@ export default function AdminLayout() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-theme-surface flex items-center justify-center text-[0.5rem] text-theme-text-faint">
+            <div className="w-7 h-7 rounded-full bg-[#141414] flex items-center justify-center text-[0.5rem] text-white/30">
               A
             </div>
-            <span className="text-xs text-theme-text-faint hidden sm:block">admin@atelier.com</span>
+            <span className="text-xs text-white/30 hidden sm:block">admin@atelier.com</span>
           </div>
         </header>
 

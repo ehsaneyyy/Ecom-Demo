@@ -43,31 +43,31 @@ export default function Login() {
         <Reveal>
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-[-0.03em] mb-2">Welcome back</h1>
-            <p className="text-sm text-theme-text-faint">Sign in to your account</p>
+            <p className="text-sm text-white/30">Sign in to your account</p>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Email</label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors({ ...errors, email: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-theme-surface border text-sm text-theme-text-secondary focus:outline-none focus:border-theme-border-hover transition-colors ${errors.email ? 'border-red-500/50' : 'border-theme-border'}`}
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="email"
               />
               {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Password</label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Password</label>
               <input
                 type="password"
                 value={form.password}
                 onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-theme-surface border text-sm text-theme-text-secondary focus:outline-none focus:border-theme-border-hover transition-colors ${errors.password ? 'border-red-500/50' : 'border-theme-border'}`}
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.password ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="current-password"
               />
               {errors.password && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.password}</p>}
@@ -90,9 +90,9 @@ export default function Login() {
         </Reveal>
 
         <Reveal delay={200}>
-          <p className="text-center text-xs text-theme-text-faint mt-8">
+          <p className="text-center text-xs text-white/30 mt-8">
             Don't have an account?{' '}
-            <Link to="/register" className="text-theme-text-faint hover:text-theme-text-muted transition-colors">Create one</Link>
+            <Link to="/register" className="text-white/30 hover:text-white/50 transition-colors">Create one</Link>
           </p>
         </Reveal>
       </div>

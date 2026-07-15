@@ -44,70 +44,70 @@ export default function Register() {
         <Reveal>
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-[-0.03em] mb-2">Create account</h1>
-            <p className="text-sm text-theme-text-faint">Join Atelier</p>
+            <p className="text-sm text-white/30">Join Atelier</p>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Full Name</label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Full Name</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => { setForm({ ...form, name: e.target.value }); setErrors({ ...errors, name: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-theme-surface border text-sm text-theme-text-secondary focus:outline-none focus:border-theme-border-hover transition-colors ${errors.name ? 'border-red-500/50' : 'border-theme-border'}`}
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.name ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="name"
               />
               {errors.name && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Email</label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors({ ...errors, email: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-theme-surface border text-sm text-theme-text-secondary focus:outline-none focus:border-theme-border-hover transition-colors ${errors.email ? 'border-red-500/50' : 'border-theme-border'}`}
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="email"
               />
               {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Password</label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Password</label>
               <input
                 type="password"
                 value={form.password}
                 onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-theme-surface border text-sm text-theme-text-secondary focus:outline-none focus:border-theme-border-hover transition-colors ${errors.password ? 'border-red-500/50' : 'border-theme-border'}`}
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.password ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="new-password"
               />
               {errors.password && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.password}</p>}
             </div>
 
             <div>
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Confirm Password</label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Confirm Password</label>
               <input
                 type="password"
                 value={form.confirmPassword}
                 onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                className={`w-full px-4 py-3 bg-theme-surface border text-sm text-theme-text-secondary focus:outline-none focus:border-theme-border-hover transition-colors ${errors.confirmPassword ? 'border-red-500/50' : 'border-theme-border'}`}
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.confirmPassword ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="new-password"
               />
               {errors.confirmPassword && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.confirmPassword}</p>}
             </div>
 
-            <div className="border-t border-theme-border pt-5">
-              <label className="block text-[0.6rem] text-theme-text-faint mb-1.5">Admin Secret Key <span className="text-theme-text-faint">(optional)</span></label>
+            <div className="border-t border-white/10 pt-5">
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Admin Secret Key <span className="text-white/30">(optional)</span></label>
               <input
                 type="text"
                 value={form.adminKey}
                 onChange={(e) => setForm({ ...form, adminKey: e.target.value })}
                 placeholder="Leave blank for customer account"
-                className="w-full px-4 py-3 bg-theme-surface border border-theme-border text-sm text-theme-text-secondary placeholder-theme-text-faint focus:outline-none focus:border-theme-border-hover transition-colors"
+                className="w-full px-4 py-3 bg-[#141414] border border-white/10 text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
               />
-              <p className="text-[0.55rem] text-theme-text-faint mt-1">Requires valid admin secret key to create admin account</p>
+              <p className="text-[0.55rem] text-white/30 mt-1">Requires valid admin secret key to create admin account</p>
             </div>
 
             {serverError && (
@@ -127,9 +127,9 @@ export default function Register() {
         </Reveal>
 
         <Reveal delay={200}>
-          <p className="text-center text-xs text-theme-text-faint mt-8">
+          <p className="text-center text-xs text-white/30 mt-8">
             Already have an account?{' '}
-            <Link to="/login" className="text-theme-text-faint hover:text-theme-text-muted transition-colors">Sign in</Link>
+            <Link to="/login" className="text-white/30 hover:text-white/50 transition-colors">Sign in</Link>
           </p>
         </Reveal>
       </div>

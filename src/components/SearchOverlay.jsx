@@ -78,9 +78,9 @@ export default function SearchOverlay({ open, onClose }) {
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Search products">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div ref={trapRef} className="relative max-w-xl mx-auto mt-[15vh] px-4 animate-scale-in">
-        <div className="bg-theme-surface border border-theme-border rounded-xl shadow-2xl overflow-hidden">
-          <div className="flex items-center gap-3 px-4 sm:px-5 border-b border-theme-border">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-theme-text-faint flex-shrink-0">
+        <div className="bg-[#141414] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+          <div className="flex items-center gap-3 px-4 sm:px-5 border-b border-white/10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/30 flex-shrink-0">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
             </svg>
@@ -91,7 +91,7 @@ export default function SearchOverlay({ open, onClose }) {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search products..."
-              className="flex-1 py-4 bg-transparent text-sm text-theme-text-secondary placeholder-theme-text-faint focus:outline-none"
+              className="flex-1 py-4 bg-transparent text-sm text-white/70 placeholder-white/30 focus:outline-none"
               aria-label="Search products"
               aria-expanded={results.length > 0}
               aria-controls="search-results"
@@ -99,7 +99,7 @@ export default function SearchOverlay({ open, onClose }) {
               role="combobox"
               aria-autocomplete="list"
             />
-            <button onClick={onClose} className="text-[0.6rem] text-theme-text-faint hover:text-theme-text-faint transition-colors px-2 py-1 border border-theme-border rounded flex-shrink-0">
+            <button onClick={onClose} className="text-[0.6rem] text-white/30 hover:text-white/30 transition-colors px-2 py-1 border border-white/10 rounded flex-shrink-0">
               ESC
             </button>
           </div>
@@ -117,28 +117,28 @@ export default function SearchOverlay({ open, onClose }) {
                       aria-selected={activeIndex === i}
                       to={`/product/${product.id}`}
                       onClick={onClose}
-                      className={`flex items-center gap-4 px-4 sm:px-5 py-3 transition-colors ${activeIndex === i ? 'bg-theme-surface' : 'hover:bg-theme-surface-hover'}`}
+                      className={`flex items-center gap-4 px-4 sm:px-5 py-3 transition-colors ${activeIndex === i ? 'bg-[#141414]' : 'hover:bg-white/5'}`}
                     >
-                      <div className="w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-theme-text-faint" style={{ background: product.color }}>
+                      <div className="w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-white/30" style={{ background: product.color }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-theme-text-muted truncate">{product.name}</p>
-                        <p className="text-[0.6rem] text-theme-text-faint">{product.category}</p>
+                        <p className="text-sm text-white/50 truncate">{product.name}</p>
+                        <p className="text-[0.6rem] text-white/30">{product.category}</p>
                       </div>
-                      <p className="text-xs text-theme-text-faint flex-shrink-0">${product.price}</p>
+                      <p className="text-xs text-white/30 flex-shrink-0">${product.price}</p>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="px-5 py-8 text-center text-xs text-theme-text-faint">No results for "{query}"</p>
+                <p className="px-5 py-8 text-center text-xs text-white/30">No results for "{query}"</p>
               )}
             </div>
           )}
 
           {!query.trim() && (
             <div className="px-5 py-6 text-center">
-              <p className="text-xs text-theme-text-faint">Type to search products, categories...</p>
+              <p className="text-xs text-white/30">Type to search products, categories...</p>
             </div>
           )}
         </div>

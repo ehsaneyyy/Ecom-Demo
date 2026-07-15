@@ -79,8 +79,8 @@ export default function StaticContent() {
         {page.sections.map((s, i) => (
           <Reveal key={i} delay={i * 60}>
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-theme-text-secondary mb-3">{s.heading}</h2>
-              <p className="text-sm text-theme-text-faint leading-relaxed">{s.text}</p>
+              <h2 className="text-base sm:text-lg font-semibold text-white/70 mb-3">{s.heading}</h2>
+              <p className="text-sm text-white/30 leading-relaxed">{s.text}</p>
             </div>
           </Reveal>
         ))}

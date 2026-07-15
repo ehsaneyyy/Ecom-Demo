@@ -55,13 +55,13 @@ export function ToastContainer() {
               ? 'bg-red-500/10 border-red-500/20 text-red-300'
               : toast.type === 'success'
               ? 'bg-green-500/10 border-green-500/20 text-green-300'
-              : 'bg-theme-surface border-theme-border text-theme-text-secondary'
+              : 'bg-[#141414] border-white/10 text-white/70'
           }`}
         >
           {toast.message}
           <button
             onClick={() => dismiss(toast.id)}
-            className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-theme-text-faint hover:text-theme-text-muted transition-colors"
+            className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-white/30 hover:text-white/50 transition-colors"
             aria-label="Dismiss"
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

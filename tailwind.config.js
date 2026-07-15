@@ -16,25 +16,8 @@ function addNotSrOnlyPlugin({ addComponents }) {
 
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
-  darkMode: 'class',
   theme: {
     extend: {
-      colors: {
-        theme: {
-          bg: 'var(--bg)',
-          surface: 'var(--bg-surface)',
-          'surface-hover': 'var(--bg-surface-hover)',
-          text: 'var(--text-primary)',
-          'text-secondary': 'var(--text-secondary)',
-          'text-muted': 'var(--text-muted)',
-          'text-faint': 'var(--text-faint)',
-          border: 'var(--border)',
-          'border-hover': 'var(--border-hover)',
-          accent: 'var(--accent)',
-          'accent-hover': 'var(--accent-hover)',
-          gold: 'var(--gold)',
-        },
-      },
       keyframes: {
         'fade-in': {
           from: { opacity: '0', transform: 'translateY(8px)' },

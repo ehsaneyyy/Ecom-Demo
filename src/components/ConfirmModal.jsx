@@ -8,13 +8,13 @@ export default function ConfirmModal({ open, title, message, onConfirm, onCancel
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-      <div ref={trapRef} className="relative bg-theme-surface border border-theme-border rounded-xl shadow-2xl w-full max-w-sm p-6 animate-scale-in">
-        <h3 id="confirm-title" className="text-base font-semibold text-theme-text-secondary mb-2">{title}</h3>
-        <p className="text-sm text-theme-text-faint mb-6 leading-relaxed">{message}</p>
+      <div ref={trapRef} className="relative bg-[#141414] border border-white/10 rounded-xl shadow-2xl w-full max-w-sm p-6 animate-scale-in">
+        <h3 id="confirm-title" className="text-base font-semibold text-white/70 mb-2">{title}</h3>
+        <p className="text-sm text-white/30 mb-6 leading-relaxed">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2.5 border border-theme-border text-xs text-theme-text-faint hover:text-theme-text-muted hover:border-theme-border-hover transition-colors min-h-[40px]"
+            className="px-4 py-2.5 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[40px]"
           >
             Cancel
           </button>
