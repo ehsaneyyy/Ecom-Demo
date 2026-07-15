@@ -8,6 +8,8 @@ export const authApi = {
     apiClient.post('/auth/register', { name, email, password, admin_key: adminKey || undefined }).then((r) => r.data),
 
   me: () => apiClient.get('/auth/me').then((r) => r.data),
+
+  listUsers: () => apiClient.get('/auth/users').then((r) => r.data),
 }
 
 export const productApi = {
@@ -38,7 +40,7 @@ export const orderApi = {
     apiClient.get(`/order/${id}`).then((r) => r.data),
 
   create: (shippingAddress, items) =>
-    apiClient.post('/order', { shipping_address: shipping_address, items }).then((r) => r.data),
+    apiClient.post('/order', { shipping_address: shippingAddress, items }).then((r) => r.data),
 
   updateStatus: (id, status) =>
     apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),

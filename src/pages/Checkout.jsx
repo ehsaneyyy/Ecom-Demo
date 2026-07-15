@@ -13,6 +13,7 @@ export default function Checkout() {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState({})
+  const [serverError, setServerError] = useState(null)
 
   const [shipping, setShipping] = useState({
     firstName: currentUser?.name?.split(' ')[0] || '',
@@ -240,6 +241,7 @@ export default function Checkout() {
                   ))}
                 </div>
               </div>
+              {serverError && <p className="text-xs text-red-400/70" role="alert">{serverError}</p>}
               <div className="flex justify-between pt-4">
                 <button onClick={() => setStep(2)} className="px-6 py-3.5 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[48px]">
                   Back

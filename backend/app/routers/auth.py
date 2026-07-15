@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.auth import create_access_token, get_current_user, hash_password, verify_password
+from app.auth import create_access_token, get_current_user, hash_password, require_admin, verify_password
 from app.config import settings
 from app.database import get_session
 from app.models import User
@@ -57,3 +57,13 @@ async def login(body: UserLogin, session: AsyncSession = Depends(get_session)):
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse(id=current_user.id, name=current_user.name, email=current_user.email, is_admin=current_user.is_admin)
+
+
+@router.get("/users", response_model=list[UserResponse])
+async def list_users(
+    session: AsyncSession = Depends(get_session),
+    admin: User = Depends(require_admin),
+):
+    result = await session.execute(select(User).order_by(User.created_at.desc()))
+    users = result.scalars().all()
+    return [UserResponse(id=u.id, name=u.name, email=u.email, is_admin=u.is_admin) for u in users]

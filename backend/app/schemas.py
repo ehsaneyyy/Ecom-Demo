@@ -83,6 +83,7 @@ class OrderItemCreate(BaseModel):
 
 class OrderResponse(BaseModel):
     id: str
+    user_id: str
     total: float
     status: str
     shipping_address: str

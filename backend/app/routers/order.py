@@ -24,6 +24,7 @@ class OrderCreateWithItems(BaseModel):
 def order_to_response(order: Order) -> OrderResponse:
     return OrderResponse(
         id=order.id,
+        user_id=order.user_id,
         total=order.total,
         status=order.status,
         shipping_address=order.shipping_address,
@@ -64,6 +65,12 @@ async def create_order(
         product = result.scalar_one_or_none()
         if not product:
             raise HTTPException(status_code=404, detail=f"Product {item_input.product_id} not found")
+
+        if product.stock < item_input.quantity:
+            raise HTTPException(status_code=400, detail=f"Insufficient stock for {product.name}")
+
+        product.stock -= item_input.quantity
+        session.add(product)
 
         order_item = OrderItem(
             order_id=order.id,

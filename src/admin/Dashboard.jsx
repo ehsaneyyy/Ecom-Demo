@@ -14,7 +14,7 @@ export default function Dashboard() {
     { label: 'Customers', value: customers.length, sub: `Avg. $${avgOrderValue.toFixed(0)} per order`, color: 'text-[#a78bfa]' },
   ]
 
-  const recentOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
+  const recentOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
 
   const statusColors = {
     pending: 'text-[#c8a97e] bg-[#c8a97e]/10',
@@ -55,8 +55,8 @@ export default function Dashboard() {
             <tbody>
               {recentOrders.map((order) => (
                 <tr key={order.id} className="border-b border-white/5 last:border-0">
-                  <td className="px-4 sm:px-6 py-4 text-xs text-white/50 font-mono">{order.id}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-white/40">{order.customer.name}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs text-white/50 font-mono">{order.id.slice(0, 8)}...</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs text-white/40">{order.user_id.slice(0, 8)}...</td>
                   <td className="px-4 sm:px-6 py-4">
                     <span className={`inline-flex px-2 py-0.5 rounded text-[0.6rem] font-medium ${statusColors[order.status] || 'text-white/30 bg-white/5'}`}>
                       {order.status}

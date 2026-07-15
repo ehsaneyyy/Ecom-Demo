@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 let toastId = 0
 
@@ -26,10 +26,10 @@ export function useToast() {
 export function ToastContainer() {
   const [toasts, setToasts] = useState([])
 
-  useState(() => {
+  useEffect(() => {
     ToastContext.listeners.add(setToasts)
     return () => ToastContext.listeners.delete(setToasts)
-  })
+  }, [])
 
   if (!toasts.length) return null
 

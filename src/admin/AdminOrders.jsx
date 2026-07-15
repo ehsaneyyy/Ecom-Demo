@@ -58,16 +58,16 @@ export default function AdminOrders() {
             >
               <div className="flex items-center gap-4 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-[0.6rem] text-white/30 flex-shrink-0">
-                  {order.customer.name.charAt(0)}
+                  {order.user_id.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-xs text-white/60 font-mono">{order.id}</p>
+                    <p className="text-xs text-white/60 font-mono">{order.id.slice(0, 8)}...</p>
                     <span className={`inline-flex px-2 py-0.5 rounded text-[0.6rem] font-medium ${statusColors[order.status]}`}>
                       {order.status}
                     </span>
                   </div>
-                  <p className="text-[0.6rem] text-white/25 mt-0.5 truncate">{order.customer.name} • {new Date(order.date).toLocaleDateString()}</p>
+                  <p className="text-[0.6rem] text-white/25 mt-0.5 truncate">User {order.user_id.slice(0, 8)}... · {order.createdAt}</p>
                 </div>
               </div>
               <div className="flex items-center justify-between sm:justify-end gap-4 pl-14 sm:pl-0">
@@ -83,16 +83,11 @@ export default function AdminOrders() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-[0.6rem] text-white/25 mb-1">Customer</p>
-                    <p className="text-xs text-white/50">{order.customer.name}</p>
-                    <p className="text-xs text-white/30">{order.customer.email}</p>
+                    <p className="text-xs text-white/50">User {order.user_id.slice(0, 8)}...</p>
                   </div>
                   <div>
                     <p className="text-[0.6rem] text-white/25 mb-1">Shipping</p>
-                    <p className="text-xs text-white/50">{order.shippingAddress || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[0.6rem] text-white/25 mb-1">Payment</p>
-                    <p className="text-xs text-white/50">{order.paymentMethod || 'N/A'}</p>
+                    <p className="text-xs text-white/50">{order.shippingAddress}</p>
                   </div>
                   <div>
                     <p className="text-[0.6rem] text-white/25 mb-2">Update Status</p>
@@ -114,7 +109,7 @@ export default function AdminOrders() {
                   <div className="space-y-2">
                     {order.items.map((item, i) => (
                       <div key={i} className="flex justify-between text-xs">
-                        <span className="text-white/40">{item.name} × {item.quantity}</span>
+                        <span className="text-white/40">{item.productName} × {item.quantity}</span>
                         <span className="text-white/30">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}

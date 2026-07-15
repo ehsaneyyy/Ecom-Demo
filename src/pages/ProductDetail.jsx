@@ -3,13 +3,16 @@ import { Link, useParams } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useAuth } from '../context/AuthContext'
+import { productApi } from '../api/api'
 import { useSEO } from '../hooks/useSEO'
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const { products } = useData()
+  const { products, fetchProducts } = useData()
   const { addItem } = useCart()
   const { toggleWishlist, isInWishlist } = useWishlist()
+  const { currentUser } = useAuth()
   const product = products.find((p) => p.id === id)
 
   useSEO({
@@ -25,6 +28,11 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false)
   const [expandedReview, setExpandedReview] = useState(null)
   const [showAllReviews, setShowAllReviews] = useState(false)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewError, setReviewError] = useState(null)
+  const [reviewSuccess, setReviewSuccess] = useState(false)
 
   if (!product) {
     return (
@@ -45,6 +53,28 @@ export default function ProductDetail() {
   }
 
   const wishlisted = isInWishlist(product.id)
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    if (!reviewText.trim()) {
+      setReviewError('Please write a review')
+      return
+    }
+    setReviewSubmitting(true)
+    setReviewError(null)
+    try {
+      await productApi.addReview(product.id, { rating: reviewRating, text: reviewText.trim() })
+      await fetchProducts()
+      setReviewSuccess(true)
+      setReviewText('')
+      setReviewRating(5)
+      setTimeout(() => setReviewSuccess(false), 3000)
+    } catch (err) {
+      setReviewError(err.response?.data?.detail || 'Failed to submit review')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
 
   const averageRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
@@ -224,6 +254,67 @@ export default function ProductDetail() {
                 Show all {reviews.length} reviews
               </button>
             )}
+          </section>
+        )}
+
+        {currentUser && (
+          <section className="mt-16 sm:mt-24">
+            <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/25 mb-2">Write a Review</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] mb-8">Share Your Thoughts</h2>
+            {reviewSuccess ? (
+              <div className="bg-[#141414] rounded-lg border border-white/5 p-6 text-center">
+                <p className="text-sm text-[#4ade80]/70">Review submitted successfully</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} className="bg-[#141414] rounded-lg border border-white/5 p-6 space-y-5">
+                <div>
+                  <p className="text-xs text-white/25 mb-3">Rating</p>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setReviewRating(s)}
+                        className={`text-xl transition-colors ${s <= reviewRating ? 'text-[#c8a97e]' : 'text-white/10 hover:text-white/20'}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-white/25 mb-1.5">Your Review</label>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    rows={4}
+                    placeholder="What did you like or dislike about this product?"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-sm text-white/70 placeholder-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none"
+                  />
+                </div>
+                {reviewError && <p className="text-xs text-red-400/70" role="alert">{reviewError}</p>}
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={reviewSubmitting}
+                    className="px-6 py-3 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[44px] disabled:opacity-50"
+                  >
+                    {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
+        )}
+
+        {!currentUser && (
+          <section className="mt-16 sm:mt-24">
+            <div className="bg-[#141414] rounded-lg border border-white/5 p-6 text-center">
+              <p className="text-sm text-white/30 mb-4">Sign in to write a review</p>
+              <Link to="/login" className="inline-flex items-center px-6 py-3 border border-white/15 text-xs tracking-[0.15em] uppercase text-white/50 hover:bg-white hover:text-black transition-all duration-500">
+                Sign In
+              </Link>
+            </div>
           </section>
         )}
 

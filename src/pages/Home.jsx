@@ -1,9 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CATEGORIES } from '../data/store'
 import { useData } from '../context/DataContext'
 import ProductCard from '../components/ProductCard'
 import { useSEO } from '../hooks/useSEO'
+
+const CATEGORIES = [
+  { id: 1, name: 'Living', count: 7, color: '#1a1510' },
+  { id: 2, name: 'Bedroom', count: 3, color: '#101518' },
+  { id: 3, name: 'Kitchen', count: 4, color: '#181a14' },
+  { id: 4, name: 'Office', count: 3, color: '#1a1418' },
+]
 
 export default function Home() {
   useSEO({ title: undefined, description: undefined, path: '/' })

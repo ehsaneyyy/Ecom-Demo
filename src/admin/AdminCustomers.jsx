@@ -1,51 +1,22 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
-import ConfirmModal from '../components/ConfirmModal'
 
 export default function AdminCustomers() {
-  const { customers, deleteCustomer, orders } = useData()
+  const { customers, orders } = useData()
   const [search, setSearch] = useState('')
   const [expandedCustomer, setExpandedCustomer] = useState(null)
-  const [toast, setToast] = useState(null)
-  const [confirm, setConfirm] = useState({ open: false, onConfirm: null })
-
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
-  }
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleDelete = (customer) => {
-    setConfirm({
-      open: true,
-      title: 'Delete Customer',
-      message: `Delete "${customer.name}"? This cannot be undone.`,
-      onConfirm: () => {
-        deleteCustomer(customer.id)
-        showToast('Customer deleted')
-        setConfirm({ open: false })
-      },
-    })
-  }
-
-  const getCustomerOrders = (customerId) => {
-    return orders.filter((o) => o.customer.email === customers.find((c) => c.id === customerId)?.email)
+  const getCustomerOrders = (userId) => {
+    return orders.filter((o) => o.user_id === userId)
   }
 
   return (
     <div className="space-y-6">
-      <ConfirmModal {...confirm} onCancel={() => setConfirm({ open: false })} />
-
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-2 bg-[#1a1a1a] border border-white/10 text-xs text-white/60 rounded-lg shadow-xl animate-slide-down">
-          {toast}
-        </div>
-      )}
-
       <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em]">Customers</h1>
 
       <div className="relative max-w-md">
@@ -66,6 +37,7 @@ export default function AdminCustomers() {
         {filtered.map((customer) => {
           const isExpanded = expandedCustomer === customer.id
           const customerOrders = getCustomerOrders(customer.id)
+          const totalSpent = customerOrders.reduce((sum, o) => sum + o.total, 0)
           return (
             <div key={customer.id} className="bg-[#141414] rounded-lg border border-white/5 overflow-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6">
@@ -78,9 +50,9 @@ export default function AdminCustomers() {
                     <p className="text-[0.6rem] text-white/25 truncate">{customer.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 pl-14 sm:pl-0 flex-shrink-0">
+                <div className="flex items-center gap-4 pl-14 sm:pl-0 flex-shrink-0">
                   <p className="text-[0.6rem] text-white/20">
-                    {customerOrders.length} order{customerOrders.length !== 1 ? 's' : ''}
+                    {customerOrders.length} order{customerOrders.length !== 1 ? 's' : ''} · ${totalSpent.toFixed(0)}
                   </p>
                   <button
                     onClick={() => setExpandedCustomer(isExpanded ? null : customer.id)}
@@ -88,21 +60,11 @@ export default function AdminCustomers() {
                   >
                     {isExpanded ? 'Less' : 'View'}
                   </button>
-                  <button
-                    onClick={() => handleDelete(customer)}
-                    className="px-3 py-1.5 text-[0.6rem] text-red-400/50 hover:text-red-400/80 border border-white/5 hover:border-red-400/20 transition-colors min-h-[36px]"
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
 
               {isExpanded && (
                 <div className="border-t border-white/5 p-4 sm:p-6 animate-fade-in space-y-4">
-                  <div>
-                    <p className="text-[0.6rem] text-white/25 mb-1">Joined</p>
-                    <p className="text-xs text-white/50">{new Date(customer.joined).toLocaleDateString()}</p>
-                  </div>
                   {customerOrders.length > 0 && (
                     <div>
                       <p className="text-[0.6rem] text-white/25 mb-2">Orders</p>
@@ -110,8 +72,8 @@ export default function AdminCustomers() {
                         {customerOrders.map((order) => (
                           <div key={order.id} className="flex items-center justify-between text-xs py-2 border-b border-white/5 last:border-0">
                             <div className="flex items-center gap-3">
-                              <span className="font-mono text-white/40">{order.id}</span>
-                              <span className="text-white/20">{new Date(order.date).toLocaleDateString()}</span>
+                              <span className="font-mono text-white/40">{order.id.slice(0, 8)}...</span>
+                              <span className="text-white/20">{order.createdAt}</span>
                             </div>
                             <span className="text-white/40">${order.total.toFixed(2)}</span>
                           </div>

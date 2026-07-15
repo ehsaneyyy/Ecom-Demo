@@ -19,7 +19,7 @@ export default function SearchOverlay({ open, onClose }) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         if (open) onClose()
-        else onClose()
+        else window.dispatchEvent(new CustomEvent('toggle-search'))
       }
       if (e.key === 'Escape' && open) onClose()
     }

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { productApi, orderApi } from '../api/api'
+import { productApi, orderApi, authApi } from '../api/api'
 import { useAuth } from './AuthContext'
 
 const DataContext = createContext()
@@ -36,6 +36,7 @@ export function DataProvider({ children }) {
   const { token } = useAuth()
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
+  const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchProducts = useCallback(async () => {
@@ -57,15 +58,27 @@ export function DataProvider({ children }) {
     }
   }, [token])
 
+  const fetchCustomers = useCallback(async () => {
+    if (!token) return
+    try {
+      const data = await authApi.listUsers()
+      setCustomers(data)
+    } catch (err) {
+      console.error('Failed to fetch customers:', err)
+    }
+  }, [token])
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       await fetchProducts()
-      if (token) await fetchOrders()
+      if (token) {
+        await Promise.all([fetchOrders(), fetchCustomers()])
+      }
       setLoading(false)
     }
     load()
-  }, [fetchProducts, fetchOrders, token])
+  }, [fetchProducts, fetchOrders, fetchCustomers, token])
 
   const addProduct = useCallback(async (productData) => {
     try {
@@ -120,13 +133,11 @@ export function DataProvider({ children }) {
     }
   }, [])
 
-  const customers = []
-
   return (
     <DataContext.Provider value={{
       products, loading,
       orders, addOrder, updateOrderStatus,
-      customers,
+      customers, fetchCustomers,
       addProduct, updateProduct, deleteProduct,
       fetchProducts, fetchOrders,
     }}>

@@ -7,7 +7,9 @@ import { AuthProvider } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import Breadcrumbs from './components/Breadcrumbs'
 import AdminRoute from './components/AdminRoute'
+import { ToastContainer } from './components/Toast'
 
 const Home = lazy(() => import('./pages/Home'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
@@ -17,6 +19,7 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
+const OrderHistory = lazy(() => import('./pages/OrderHistory'))
 const ContentPages = lazy(() => import('./pages/ContentPages'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -50,8 +53,12 @@ function Layout({ children }) {
   return (
     <>
       {!isAuth && <Navbar />}
-      <main id="main-content" className="animate-fade-in" key={pathname}>{children}</main>
+      <main id="main-content" className="animate-fade-in" key={pathname}>
+        {!isAdmin && <Breadcrumbs />}
+        {children}
+      </main>
       {!isAuth && <Footer />}
+      <ToastContainer />
     </>
   )
 }
@@ -78,6 +85,7 @@ export default function App() {
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/wishlist" element={<WishlistPage />} />
+                      <Route path="/orders" element={<OrderHistory />} />
                       <Route path="/about" element={<ContentPages />} />
                       <Route path="/shipping" element={<ContentPages />} />
                       <Route path="/returns" element={<ContentPages />} />
