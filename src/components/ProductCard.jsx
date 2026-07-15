@@ -47,10 +47,10 @@ export default function ProductCard({ product }) {
         </div>
         <div className="text-right flex-shrink-0">
           {product.compareAtPrice && (
-            <span className="text-xs text-white/30 line-through block">${product.compareAtPrice}</span>
+            <span className="text-xs text-white/30 line-through block">₹{product.compareAtPrice}</span>
           )}
           <span className={`text-sm ${product.tag === 'Sale' ? 'text-[#c85a3e]' : 'text-white/50'}`}>
-            ${product.price}
+            ₹{product.price}
           </span>
         </div>
       </div>

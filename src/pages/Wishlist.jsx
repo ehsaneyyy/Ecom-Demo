@@ -36,7 +36,7 @@ export default function Wishlist() {
                   <span className="text-[0.5rem] tracking-[0.2em] uppercase text-white/30 text-center px-2">{product.name}</span>
                 </div>
                 <h3 className="text-sm text-white/70 mb-1 group-hover:text-white/90 transition-colors truncate">{product.name}</h3>
-                <p className="text-sm text-white/30">${product.price}</p>
+                <p className="text-sm text-white/30">₹{product.price}</p>
               </Link>
               <button
                 onClick={() => toggleWishlist(product)}

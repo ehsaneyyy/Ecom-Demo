@@ -46,7 +46,7 @@ const pages = {
     sections: [
       { heading: 'Information We Collect', text: 'When you visit Atelier, we automatically collect certain information about your device, including your web browser, IP address, time zone, and some cookies. We also collect information about the individual web pages you view, what websites or search terms referred you, and how you interact with the site.' },
       { heading: 'How We Use Your Information', text: 'We use order information to fulfill orders, process payments, arrange shipping, and provide invoices. We use device information to help us screen for potential risk and fraud, and to improve and optimize our site.' },
-      { heading: 'Sharing Your Information', text: 'We share your Personal Information with third parties to help us process payments (Stripe), fulfill orders (shipping carriers), and provide analytics (Google Analytics). We do not sell your personal information to third parties.' },
+      { heading: 'Sharing Your Information', text: 'We share your Personal Information with third parties to help us process payments (Razorpay), fulfill orders (shipping carriers), and provide analytics (Google Analytics). We do not sell your personal information to third parties.' },
       { heading: 'Your Rights', text: 'If you are a European resident, you have the right to access personal information we hold about you and to ask that your personal information be corrected, updated, or deleted. You may contact us at privacy@atelier.com.' },
       { heading: 'Data Retention', text: 'When you place an order, we will maintain your order information for our records unless and until you ask us to delete this information.' },
     ],

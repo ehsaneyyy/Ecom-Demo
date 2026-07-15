@@ -126,7 +126,7 @@ export default function SearchOverlay({ open, onClose }) {
                         <p className="text-sm text-white/50 truncate">{product.name}</p>
                         <p className="text-[0.6rem] text-white/30">{product.category}</p>
                       </div>
-                      <p className="text-xs text-white/30 flex-shrink-0">${product.price}</p>
+                      <p className="text-xs text-white/30 flex-shrink-0">₹{product.price}</p>
                     </Link>
                   ))}
                 </div>

@@ -206,7 +206,7 @@ export default function AdminProducts() {
                     </div>
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-xs text-white/30 hidden sm:table-cell">{product.category}</td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-white/30">${product.price}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs text-white/30">₹{product.price}</td>
                   <td className="px-4 sm:px-6 py-4 text-xs text-white/30 hidden md:table-cell">
                     <span className={`${(product.stock ?? 10) <= 5 ? 'text-[#c8a97e]' : ''}`}>
                       {product.stock ?? 10}

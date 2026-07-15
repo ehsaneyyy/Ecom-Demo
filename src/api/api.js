@@ -55,6 +55,9 @@ export const orderApi = {
 }
 
 export const paymentApi = {
-  createCheckoutSession: (shippingAddress, items) =>
-    apiClient.post('/payments/checkout', { shipping_address: shippingAddress, items }).then((r) => r.data),
+  createOrder: (shippingAddress, items) =>
+    apiClient.post('/payments/create-order', { shipping_address: shippingAddress, items }).then((r) => r.data),
+
+  verifyPayment: (data) =>
+    apiClient.post('/payments/verify', data).then((r) => r.data),
 }

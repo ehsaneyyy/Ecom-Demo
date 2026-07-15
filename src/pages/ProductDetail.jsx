@@ -144,9 +144,9 @@ export default function ProductDetail() {
                 <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-2">{product.category}</p>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em] mb-3 sm:mb-4">{product.name}</h1>
                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <p className="text-xl sm:text-2xl text-white/50">${product.price}</p>
+                  <p className="text-xl sm:text-2xl text-white/50">₹{product.price}</p>
                   {product.compareAtPrice && (
-                    <p className="text-sm text-white/30 line-through">${product.compareAtPrice}</p>
+                    <p className="text-sm text-white/30 line-through">₹{product.compareAtPrice}</p>
                   )}
                 </div>
                 {averageRating && (
@@ -242,7 +242,7 @@ export default function ProductDetail() {
                     <circle cx="5.5" cy="18.5" r="2.5" />
                     <circle cx="18.5" cy="18.5" r="2.5" />
                   </svg>
-                  Free shipping over $200
+                  Free shipping over ₹200
                 </span>
                 <span className="flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -398,7 +398,7 @@ export default function ProductDetail() {
                       )}
                     </div>
                     <h3 className="text-sm text-white/70 mb-1 group-hover:text-white transition-colors truncate">{rp.name}</h3>
-                    <p className="text-sm text-white/30">${rp.price}</p>
+                    <p className="text-sm text-white/30">₹{rp.price}</p>
                   </Link>
                 </Reveal>
               ))}
@@ -431,7 +431,7 @@ export default function ProductDetail() {
                         )}
                       </div>
                       <h3 className="text-sm text-white/70 mb-1 group-hover:text-white transition-colors truncate">{rp.name}</h3>
-                      <p className="text-sm text-white/30">${rp.price}</p>
+                      <p className="text-sm text-white/30">₹{rp.price}</p>
                     </Link>
                   </Reveal>
                 ))}

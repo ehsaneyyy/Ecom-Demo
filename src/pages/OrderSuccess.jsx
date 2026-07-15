@@ -5,7 +5,8 @@ import Reveal from '../components/Reveal'
 
 export default function OrderSuccess() {
   const [searchParams] = useSearchParams()
-  const sessionId = searchParams.get('session_id')
+  const orderId = searchParams.get('order_id')
+  const paymentId = searchParams.get('payment_id')
   const { clearCart } = useCart()
   const [cleared, setCleared] = useState(false)
 
@@ -26,8 +27,8 @@ export default function OrderSuccess() {
         </div>
         <h1 className="text-3xl font-bold tracking-[-0.03em] mb-3">Payment Successful</h1>
         <p className="text-sm text-white/30 mb-2">Thank you for your purchase.</p>
-        {sessionId && (
-          <p className="text-xs text-white/30 mb-8 font-mono">Session: {sessionId.slice(0, 20)}...</p>
+        {paymentId && (
+          <p className="text-xs text-white/30 mb-8 font-mono">Payment ID: {paymentId.slice(0, 20)}...</p>
         )}
         <p className="text-xs text-white/30 mb-8">A confirmation has been sent to your email.</p>
         <Link to="/category/all" className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors">

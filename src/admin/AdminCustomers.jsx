@@ -52,7 +52,7 @@ export default function AdminCustomers() {
                 </div>
                 <div className="flex items-center gap-4 pl-14 sm:pl-0 flex-shrink-0">
                   <p className="text-[0.6rem] text-white/30">
-                    {customerOrders.length} order{customerOrders.length !== 1 ? 's' : ''} · ${totalSpent.toFixed(0)}
+                    {customerOrders.length} order{customerOrders.length !== 1 ? 's' : ''} · ₹{totalSpent.toFixed(0)}
                   </p>
                   <button
                     onClick={() => setExpandedCustomer(isExpanded ? null : customer.id)}
@@ -75,7 +75,7 @@ export default function AdminCustomers() {
                               <span className="font-mono text-white/30">{order.id.slice(0, 8)}...</span>
                               <span className="text-white/30">{order.createdAt}</span>
                             </div>
-                            <span className="text-white/30">${order.total.toFixed(2)}</span>
+                            <span className="text-white/30">₹{order.total.toFixed(2)}</span>
                           </div>
                         ))}
                       </div>

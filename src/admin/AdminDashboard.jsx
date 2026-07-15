@@ -9,10 +9,10 @@ export default function AdminDashboard() {
   const avgOrderValue = orders.length ? totalRevenue / orders.length : 0
 
   const stats = [
-    { label: 'Total Revenue', value: `$${totalRevenue.toLocaleString()}`, sub: `${orders.length} orders`, color: 'text-[#4ade80]' },
+    { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, sub: `${orders.length} orders`, color: 'text-[#4ade80]' },
     { label: 'Products', value: products.length, sub: `${products.filter((p) => p.stock <= 5).length} low stock`, color: 'text-[#60a5fa]' },
     { label: 'Pending Orders', value: pendingOrders, sub: 'Needs attention', color: 'text-[#c8a97e]' },
-    { label: 'Customers', value: customers.length, sub: `Avg. $${avgOrderValue.toFixed(0)} per order`, color: 'text-[#a78bfa]' },
+    { label: 'Customers', value: customers.length, sub: `Avg. ₹${avgOrderValue.toFixed(0)} per order`, color: 'text-[#a78bfa]' },
   ]
 
   const recentOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-white/30 text-right">${order.total.toFixed(2)}</td>
+                  <td className="px-4 sm:px-6 py-4 text-xs text-white/30 text-right">₹{order.total.toFixed(2)}</td>
                 </tr>
               ))}
               {recentOrders.length === 0 && (

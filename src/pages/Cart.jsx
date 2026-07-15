@@ -56,7 +56,7 @@ export default function Cart() {
                         {item.selectedColor && <p className="text-[0.6rem] text-white/30 mt-1">{item.selectedColor}</p>}
                         {item.selectedSize && <p className="text-[0.6rem] text-white/30 mt-0.5">Size: {item.selectedSize}</p>}
                       </div>
-                      <p className="text-sm text-white/50 flex-shrink-0">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-sm text-white/50 flex-shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                     </div>
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center gap-0">
@@ -99,20 +99,20 @@ export default function Cart() {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Subtotal ({count} items)</span>
-                  <span className="text-white/50">${total.toFixed(2)}</span>
+                  <span className="text-white/50">₹{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Shipping</span>
-                  <span className="text-white/50">{total >= 200 ? 'Free' : '$15.00'}</span>
+                  <span className="text-white/50">{total >= 200 ? 'Free' : '₹15.00'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Tax (8%)</span>
-                  <span className="text-white/50">${(total * 0.08).toFixed(2)}</span>
+                  <span className="text-white/50">₹{(total * 0.08).toFixed(2)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-4 mt-4">
                   <div className="flex justify-between">
                     <span className="text-sm text-white/70">Total</span>
-                    <span className="text-base font-medium text-white/70">${(total + (total >= 200 ? 0 : 15) + total * 0.08).toFixed(2)}</span>
+                    <span className="text-base font-medium text-white/70">₹{(total + (total >= 200 ? 0 : 15) + total * 0.08).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

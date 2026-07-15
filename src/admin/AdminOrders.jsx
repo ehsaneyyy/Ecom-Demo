@@ -55,7 +55,7 @@ export default function AdminOrders() {
                 </div>
               </div>
               <div className="flex items-center justify-between sm:justify-end gap-4 pl-14 sm:pl-0">
-                <p className="text-sm text-white/50 font-medium">${order.total.toFixed(2)}</p>
+                <p className="text-sm text-white/50 font-medium">₹{order.total.toFixed(2)}</p>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-white/30 transition-transform ${expandedOrder === order.id ? 'rotate-180' : ''}`}>
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
@@ -94,7 +94,7 @@ export default function AdminOrders() {
                     {order.items.map((item, i) => (
                       <div key={i} className="flex justify-between text-xs">
                         <span className="text-white/30">{item.productName} × {item.quantity}</span>
-                        <span className="text-white/30">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-white/30">₹{(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>

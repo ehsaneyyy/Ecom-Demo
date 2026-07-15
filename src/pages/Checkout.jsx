@@ -54,7 +54,6 @@ export default function Checkout() {
     if (!shipping.city.trim()) errs.city = 'Required'
     if (!shipping.state.trim()) errs.state = 'Required'
     if (!shipping.zip.trim()) errs.zip = 'Required'
-    else if (!/^\d{5}(-\d{4})?$/.test(shipping.zip)) errs.zip = 'Invalid ZIP'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -63,18 +62,80 @@ export default function Checkout() {
     if (step === 1 && validateStep1()) setStep(2)
   }
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+        resolve(true)
+        return
+      }
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
   const handlePlaceOrder = async () => {
     if (isPlacing) return
     setIsPlacing(true)
     setServerError(null)
+
+    const loaded = await loadRazorpayScript()
+    if (!loaded) {
+      setServerError('Failed to load payment gateway. Please try again.')
+      setIsPlacing(false)
+      return
+    }
+
     const address = `${shipping.firstName} ${shipping.lastName}, ${shipping.address}, ${shipping.city}, ${shipping.state} ${shipping.zip}`
     const orderItems = items.map((item) => ({
       product_id: String(item.id),
       quantity: item.quantity,
     }))
+
     try {
-      const { url } = await paymentApi.createCheckoutSession(address, orderItems)
-      window.location.href = url
+      const { order_id, amount, currency, key_id } = await paymentApi.createOrder(address, orderItems)
+
+      const options = {
+        key: key_id,
+        amount,
+        currency,
+        name: 'Atelier',
+        description: `Order - ${items.length} item(s)`,
+        order_id,
+        handler: async (response) => {
+          try {
+            await paymentApi.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              shipping_address: address,
+              items: orderItems,
+            })
+            clearCart()
+            navigate(`/order-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}`)
+          } catch (err) {
+            setServerError('Payment verification failed. Contact support.')
+            setIsPlacing(false)
+          }
+        },
+        prefill: {
+          name: `${shipping.firstName} ${shipping.lastName}`,
+          email: shipping.email,
+        },
+        theme: {
+          color: '#0a0a0a',
+        },
+        modal: {
+          ondismiss: () => {
+            setIsPlacing(false)
+          },
+        },
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
     } catch (err) {
       setServerError(err.response?.data?.detail || 'Failed to start checkout. Please try again.')
       setIsPlacing(false)
@@ -167,14 +228,14 @@ export default function Checkout() {
                   </div>
                   <div className="border-t border-white/10 pt-4">
                     <p className="text-[0.6rem] text-white/30 mb-1">Payment</p>
-                    <p className="text-sm text-white/50">Stripe secure checkout</p>
+                    <p className="text-sm text-white/50">Razorpay secure checkout</p>
                   </div>
                   <div className="border-t border-white/10 pt-4">
                     <p className="text-[0.6rem] text-white/30 mb-3">Items</p>
                     {items.map((item) => (
                       <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="flex justify-between text-sm py-2">
                         <span className="text-white/50">{item.name} × {item.quantity}</span>
-                        <span className="text-white/30">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-white/30">₹{(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -189,7 +250,7 @@ export default function Checkout() {
                     disabled={isPlacing}
                     className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-50"
                   >
-                    {isPlacing ? 'Redirecting to Stripe...' : 'Pay with Stripe'}
+                    {isPlacing ? 'Processing...' : 'Pay with Razorpay'}
                   </button>
                 </div>
               </div>
@@ -215,27 +276,27 @@ export default function Checkout() {
                       <p className="text-xs text-white/50 truncate">{item.name}</p>
                       <p className="text-[0.6rem] text-white/30">Qty: {item.quantity}</p>
                     </div>
-                    <p className="text-xs text-white/30 flex-shrink-0">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-xs text-white/30 flex-shrink-0">₹{(item.price * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>
               <div className="border-t border-white/10 pt-4 space-y-3">
                 <div className="flex justify-between text-xs">
                   <span className="text-white/30">Subtotal</span>
-                  <span className="text-white/50">${total.toFixed(2)}</span>
+                  <span className="text-white/50">₹{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-white/30">Shipping</span>
-                  <span className="text-white/50">{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
+                  <span className="text-white/50">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-white/30">Tax</span>
-                  <span className="text-white/50">${tax.toFixed(2)}</span>
+                  <span className="text-white/50">₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-3 mt-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-white/70">Total</span>
-                    <span className="text-base font-medium text-white/70">${grandTotal.toFixed(2)}</span>
+                    <span className="text-base font-medium text-white/70">₹{grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
