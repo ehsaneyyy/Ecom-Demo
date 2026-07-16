@@ -34,7 +34,7 @@ export function useData() {
 }
 
 export function DataProvider({ children }) {
-  const { token } = useAuth()
+  const { token, isAdmin } = useAuth()
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [customers, setCustomers] = useState([])
@@ -74,12 +74,14 @@ export function DataProvider({ children }) {
       setLoading(true)
       await fetchProducts()
       if (token) {
-        await Promise.all([fetchOrders(), fetchCustomers()])
+        const promises = [fetchOrders()]
+        if (isAdmin) promises.push(fetchCustomers())
+        await Promise.all(promises)
       }
       setLoading(false)
     }
     load()
-  }, [fetchProducts, fetchOrders, fetchCustomers, token])
+  }, [fetchProducts, fetchOrders, fetchCustomers, token, isAdmin])
 
   const addProduct = useCallback(async (productData) => {
     try {
