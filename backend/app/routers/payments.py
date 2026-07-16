@@ -108,7 +108,7 @@ async def create_order(
         })
     except Exception as e:
         logger.error(f"Razorpay order creation failed: {e}")
-        raise HTTPException(status_code=400, detail="Failed to create payment order")
+        raise HTTPException(status_code=400, detail=f"Payment gateway error: {str(e)[:200]}")
 
     return {
         "order_id": razorpay_order["id"],
