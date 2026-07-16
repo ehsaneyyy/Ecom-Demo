@@ -20,15 +20,37 @@ router = APIRouter(prefix="/api/payments", tags=["payments"])
 logger = logging.getLogger(__name__)
 
 
+def _ensure_pkg_resources():
+    import sys
+    import types
+    if 'pkg_resources' not in sys.modules:
+        stub = types.ModuleType('pkg_resources')
+        class _DummyDist:
+            def __init__(self, version="0.0.0"):
+                self.version = version
+        def _get_distribution(name):
+            return _DummyDist()
+        stub.get_distribution = _get_distribution
+        sys.modules['pkg_resources'] = stub
+
+
 def get_razorpay_client():
     if not settings.razorpay_key_id or not settings.razorpay_key_secret:
         return None
     try:
         import razorpay
         return razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
-    except Exception as e:
-        logger.warning(f"Failed to initialize Razorpay client: {e}")
-        return None
+    except Exception:
+        _ensure_pkg_resources()
+        try:
+            import importlib
+            if 'razorpay' in __import__('sys').modules:
+                del __import__('sys').modules['razorpay']
+            import razorpay
+            return razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
+        except Exception as e:
+            logger.warning(f"Failed to initialize Razorpay client: {e}")
+            return None
 
 
 class CreateOrderRequest(BaseModel):
