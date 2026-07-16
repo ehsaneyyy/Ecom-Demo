@@ -44,4 +44,12 @@ app.mount("/api/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok"}
+    from app.config import settings
+    razorpay_ok = bool(settings.razorpay_key_id and settings.razorpay_key_secret)
+    try:
+        import razorpay
+        if razorpay_ok:
+            razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
+    except Exception as e:
+        return {"status": "ok", "razorpay_configured": razorpay_ok, "razorpay_error": str(e)}
+    return {"status": "ok", "razorpay_configured": razorpay_ok}
