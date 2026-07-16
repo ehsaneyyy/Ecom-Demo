@@ -28,9 +28,10 @@ def _ensure_pkg_resources():
         class _DummyDist:
             def __init__(self, version="0.0.0"):
                 self.version = version
-        def _get_distribution(name):
-            return _DummyDist()
-        stub.get_distribution = _get_distribution
+        class DistributionNotFound(Exception):
+            pass
+        stub.get_distribution = lambda name: _DummyDist()
+        stub.DistributionNotFound = DistributionNotFound
         sys.modules['pkg_resources'] = stub
 
 
