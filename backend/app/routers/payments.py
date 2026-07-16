@@ -1,11 +1,9 @@
-import asyncio
 import hashlib
 import hmac
-import json
 import logging
 import uuid
-from datetime import date
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,39 +17,11 @@ from app.models import Order, OrderItem, Product, User
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 logger = logging.getLogger(__name__)
 
-
-def _ensure_pkg_resources():
-    import sys
-    import types
-    if 'pkg_resources' not in sys.modules:
-        stub = types.ModuleType('pkg_resources')
-        class _DummyDist:
-            def __init__(self, version="0.0.0"):
-                self.version = version
-        class DistributionNotFound(Exception):
-            pass
-        stub.get_distribution = lambda name: _DummyDist()
-        stub.DistributionNotFound = DistributionNotFound
-        sys.modules['pkg_resources'] = stub
+RAZORPAY_API = "https://api.razorpay.com/v1"
 
 
-def get_razorpay_client():
-    if not settings.razorpay_key_id or not settings.razorpay_key_secret:
-        return None
-    try:
-        import razorpay
-        return razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
-    except Exception:
-        _ensure_pkg_resources()
-        try:
-            import importlib
-            if 'razorpay' in __import__('sys').modules:
-                del __import__('sys').modules['razorpay']
-            import razorpay
-            return razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
-        except Exception as e:
-            logger.warning(f"Failed to initialize Razorpay client: {e}")
-            return None
+def _razorpay_auth():
+    return httpx.BasicAuth(settings.razorpay_key_id, settings.razorpay_key_secret)
 
 
 class CreateOrderRequest(BaseModel):
@@ -73,8 +43,7 @@ async def create_order(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    client = get_razorpay_client()
-    if not client:
+    if not settings.razorpay_key_id or not settings.razorpay_key_secret:
         raise HTTPException(status_code=503, detail="Razorpay not configured")
 
     if not body.items:
@@ -100,15 +69,26 @@ async def create_order(
 
     receipt = f"order_{uuid.uuid4().hex[:16]}"
 
-    try:
-        razorpay_order = await asyncio.to_thread(client.order.create, {
-            "amount": total_amount,
-            "currency": "INR",
-            "receipt": receipt,
-        })
-    except Exception as e:
-        logger.error(f"Razorpay order creation failed: {e}")
-        raise HTTPException(status_code=400, detail=f"Payment gateway error: {str(e)[:200]}")
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(
+                f"{RAZORPAY_API}/orders",
+                auth=_razorpay_auth(),
+                json={
+                    "amount": total_amount,
+                    "currency": "INR",
+                    "receipt": receipt,
+                },
+                timeout=10.0,
+            )
+            resp.raise_for_status()
+            razorpay_order = resp.json()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Razorpay order creation failed: {e.response.status_code} {e.response.text}")
+            raise HTTPException(status_code=400, detail=f"Payment gateway error: {e.response.text[:200]}")
+        except Exception as e:
+            logger.error(f"Razorpay order creation failed: {e}")
+            raise HTTPException(status_code=400, detail=f"Payment gateway error: {str(e)[:200]}")
 
     return {
         "order_id": razorpay_order["id"],
@@ -124,8 +104,7 @@ async def verify_payment(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    client = get_razorpay_client()
-    if not client:
+    if not settings.razorpay_key_id or not settings.razorpay_key_secret:
         raise HTTPException(status_code=503, detail="Razorpay not configured")
 
     generated_signature = hmac.new(
@@ -176,6 +155,6 @@ async def verify_payment(
     order.total = total
     session.add(order)
     await session.commit()
-    logger.info(f"Order {order.id} created via Razorpay, total: ${total:.2f}")
+    logger.info(f"Order {order.id} created via Razorpay, total: {total}")
 
     return {"success": True, "order_id": order.id}

@@ -9,6 +9,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Breadcrumbs from './components/Breadcrumbs'
 import AdminRoute from './components/AdminRoute'
+import ProtectedRoute from './components/ProtectedRoute'
 import { ToastContainer } from './components/Toast'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -89,13 +90,13 @@ export default function App() {
                       <Route path="/" element={<Home />} />
                       <Route path="/product/:id" element={<ProductDetail />} />
                       <Route path="/category/:slug" element={<Category />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/order-success" element={<OrderSuccess />} />
+                      <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+                      <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                      <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
-                      <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+                      <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
                       <Route path="/about" element={<StaticContent />} />
                       <Route path="/shipping" element={<StaticContent />} />
                       <Route path="/returns" element={<StaticContent />} />
