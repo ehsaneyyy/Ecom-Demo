@@ -242,7 +242,7 @@ export default function ProductDetail() {
                     <circle cx="5.5" cy="18.5" r="2.5" />
                     <circle cx="18.5" cy="18.5" r="2.5" />
                   </svg>
-                  Free shipping over ₹200
+                  Free shipping over ₹10,000
                 </span>
                 <span className="flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

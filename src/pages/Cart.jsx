@@ -103,7 +103,7 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Shipping</span>
-                  <span className="text-white/50">{total >= 200 ? 'Free' : '₹15.00'}</span>
+                  <span className="text-white/50">{total >= 10000 ? 'Free' : '₹500.00'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Tax (8%)</span>
@@ -112,7 +112,7 @@ export default function Cart() {
                 <div className="border-t border-white/10 pt-4 mt-4">
                   <div className="flex justify-between">
                     <span className="text-sm text-white/70">Total</span>
-                    <span className="text-base font-medium text-white/70">₹{(total + (total >= 200 ? 0 : 15) + total * 0.08).toFixed(2)}</span>
+                    <span className="text-base font-medium text-white/70">₹{(total + (total >= 10000 ? 0 : 500) + total * 0.08).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

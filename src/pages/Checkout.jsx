@@ -24,10 +24,10 @@ export default function Checkout() {
     city: '',
     state: '',
     zip: '',
-    country: 'United States',
+    country: 'India',
   })
 
-  const shippingCost = total >= 200 ? 0 : 15
+  const shippingCost = total >= 10000 ? 0 : 500
   const tax = total * 0.08
   const grandTotal = total + shippingCost + tax
 

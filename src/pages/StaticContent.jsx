@@ -14,8 +14,8 @@ const pages = {
   '/shipping': {
     title: 'Shipping',
     sections: [
-      { heading: 'Free Shipping', text: 'We offer free standard shipping on all orders over $200 within the continental United States. Orders under $200 ship for a flat rate of $15.' },
-      { heading: 'Shipping Methods', text: 'Standard shipping: 5-7 business days. Express shipping: 2-3 business days ($25). Overnight shipping: Next business day ($40). International shipping available to 30+ countries — rates calculated at checkout.' },
+      { heading: 'Free Shipping', text: 'We offer free standard shipping on all orders over ₹10,000 within India. Orders under ₹10,000 ship for a flat rate of ₹500.' },
+      { heading: 'Shipping Methods', text: 'Standard shipping: 5-7 business days. Express shipping: 2-3 business days (₹1,500). Overnight shipping: Next business day (₹2,500). International shipping available — rates calculated at checkout.' },
       { heading: 'Processing Time', text: 'Most orders ship within 1-2 business days. Handmade and custom items may require additional processing time — this will be noted on the product page.' },
       { heading: 'Tracking', text: 'You\'ll receive a shipping confirmation email with tracking information once your order ships. Track your package anytime from your account dashboard.' },
     ],
@@ -24,7 +24,7 @@ const pages = {
     title: 'Returns & Exchanges',
     sections: [
       { heading: '30-Day Returns', text: 'We accept returns within 30 days of delivery. Items must be unused, in their original packaging, and in the same condition you received them.' },
-      { heading: 'How to Return', text: 'Log into your account, select the order, and click "Request Return." We\'ll email you a prepaid shipping label. Pack the item securely and drop it off at any authorized shipping location.' },
+      { heading: 'How to Return', text: 'Log into your account, select the order, and click "Request Return." We\'ll arrange a pickup from your address. Pack the item securely in its original packaging.' },
       { heading: 'Refunds', text: 'Refunds are processed within 5 business days of receiving your return. The refund will be credited to your original payment method. Please allow 5-10 business days for the refund to appear on your statement.' },
       { heading: 'Exchanges', text: 'Need a different size or color? Contact us at hello@atelier.com and we\'ll arrange an exchange. We cover shipping on exchanges for defective or incorrect items.' },
       { heading: 'Exceptions', text: 'Final sale items, personalized products, and gift cards cannot be returned. Damaged items must be reported within 48 hours of delivery with photos.' },
