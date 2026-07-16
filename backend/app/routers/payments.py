@@ -5,7 +5,6 @@ import logging
 import uuid
 from datetime import date
 
-import razorpay
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,8 +19,12 @@ router = APIRouter(prefix="/api/payments", tags=["payments"])
 logger = logging.getLogger(__name__)
 
 client = None
-if settings.razorpay_key_id and settings.razorpay_key_secret:
-    client = razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
+try:
+    import razorpay
+    if settings.razorpay_key_id and settings.razorpay_key_secret:
+        client = razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
+except ImportError:
+    pass
 
 
 class CreateOrderRequest(BaseModel):
