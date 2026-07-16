@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import hmac
 import json
@@ -25,7 +26,8 @@ def get_razorpay_client():
     try:
         import razorpay
         return razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
-    except ImportError:
+    except Exception as e:
+        logger.warning(f"Failed to initialize Razorpay client: {e}")
         return None
 
 
@@ -76,7 +78,7 @@ async def create_order(
     receipt = f"order_{uuid.uuid4().hex[:16]}"
 
     try:
-        razorpay_order = client.order.create({
+        razorpay_order = await asyncio.to_thread(client.order.create, {
             "amount": total_amount,
             "currency": "INR",
             "receipt": receipt,
