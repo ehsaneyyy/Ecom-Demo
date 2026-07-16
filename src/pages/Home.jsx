@@ -1,11 +1,9 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import ProductCard from '../components/ProductCard'
 import Reveal from '../components/Reveal'
 import { SkeletonCard } from '../components/Skeleton'
 import { useSEO } from '../hooks/useSEO'
-import { emailRegex } from '../utils/validate'
 
 const CATEGORIES = [
   { id: 1, name: 'Living', count: 7, color: '#1a1510' },
@@ -17,23 +15,6 @@ const CATEGORIES = [
 export default function Home() {
   useSEO({ title: undefined, description: undefined, path: '/' })
   const { products, loading } = useData()
-  const [email, setEmail] = useState('')
-  const [subscribed, setSubscribed] = useState(false)
-  const [emailError, setEmailError] = useState('')
-
-  const handleSubscribe = (e) => {
-    e.preventDefault()
-    if (!email.trim()) {
-      setEmailError('Email is required')
-      return
-    }
-    if (!emailRegex.test(email)) {
-      setEmailError('Enter a valid email')
-      return
-    }
-    setEmailError('')
-    setSubscribed(true)
-  }
 
   return (
     <>
@@ -147,38 +128,6 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <Reveal>
-            <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-4">Stay Updated</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.03em] mb-4">Join the list</h2>
-            <p className="text-xs sm:text-sm text-white/30 mb-6 sm:mb-8 max-w-md mx-auto">
-              First access to new arrivals, exclusive offers, and stories from our makers.
-            </p>
-            {subscribed ? (
-              <p className="text-sm text-white/50">Thanks for subscribing! Check your inbox.</p>
-            ) : (
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-stretch sm:items-center max-w-md mx-auto gap-0">
-                <div className="flex-1">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); setEmailError('') }}
-                    placeholder="your@email.com"
-                    aria-label="Email address"
-                    className="w-full px-5 py-3.5 sm:py-4 bg-[#141414] border border-white/10 text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                  />
-                  {emailError && <p className="text-xs text-[#c85a3e] mt-1 text-left pl-1" role="alert">{emailError}</p>}
-                </div>
-                <button type="submit" className="px-6 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors whitespace-nowrap sm:border-l-0">
-                  Subscribe
-                </button>
-              </form>
-            )}
           </Reveal>
         </div>
       </section>

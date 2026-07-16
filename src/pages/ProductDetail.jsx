@@ -8,12 +8,26 @@ import { productApi } from '../api/api'
 import { useSEO } from '../hooks/useSEO'
 import Reveal from '../components/Reveal'
 
+const COLOR_NAMES = {
+  '#1a1510': 'Charcoal', '#0a0a0a': 'Black', '#2d2d2d': 'Dark Gray',
+  '#f5f0e8': 'Cream', '#e8ddd0': 'Sand', '#1a1a2e': 'Navy',
+  '#2d1b10': 'Espresso', '#f0e6d8': 'Ivory', '#101518': 'Slate',
+  '#e2d5c0': 'Linen', '#1a1008': 'Umber', '#f8f4f0': 'Pearl',
+  '#c8a97e': 'Gold', '#c85a3e': 'Terracotta', '#e6d5c3': 'Natural',
+  '#3a2e28': 'Mocha', '#d4c4b0': 'Taupe', '#2c2c2c': 'Onyx',
+  '#f5f5f5': 'White', '#d4a574': 'Caramel', '#8b7355': 'Walnut',
+}
+
+function getColorName(hex) {
+  return COLOR_NAMES[hex] || hex
+}
+
 export default function ProductDetail() {
   const { id } = useParams()
-  const { products, fetchProducts } = useData()
+  const { products, loading, fetchProducts } = useData()
   const { addItem } = useCart()
   const { toggleWishlist, isInWishlist } = useWishlist()
-  const { currentUser } = useAuth()
+  const { currentUser, isLoggedIn } = useAuth()
   const product = products.find((p) => p.id === id)
 
   useSEO({
@@ -44,6 +58,14 @@ export default function ProductDetail() {
   const [reviewError, setReviewError] = useState(null)
   const [reviewSuccess, setReviewSuccess] = useState(false)
 
+  if (loading && !product) {
+    return (
+      <div className="animate-fade-in min-h-[60vh] flex items-center justify-center">
+        <div className="w-5 h-5 border border-white/10 border-t-white/40 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   if (!product) {
     return (
       <div className="animate-fade-in min-h-[60vh] flex flex-col items-center justify-center px-4">
@@ -68,6 +90,14 @@ export default function ProductDetail() {
     addItem(product, quantity, selectedColor, selectedSize)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
+  }
+
+  const handleWishlist = () => {
+    if (!isLoggedIn) {
+      window.location.href = '/login'
+      return
+    }
+    toggleWishlist(product)
   }
 
   const wishlisted = isInWishlist(product.id)
@@ -150,8 +180,8 @@ export default function ProductDetail() {
                   )}
                 </div>
                 {averageRating && (
-                  <div className="flex items-center gap-2 text-sm text-white/30">
-                    <div className="flex gap-0.5">
+                  <div className="flex items-center gap-2 text-sm text-white/30" aria-label={`Rating: ${averageRating} out of 5 stars`}>
+                    <div className="flex gap-0.5" role="img" aria-label={`${averageRating} out of 5 stars`}>
                       {[1, 2, 3, 4, 5].map((s) => (
                         <span key={s} className={`text-sm ${s <= Math.round(averageRating) ? 'text-[#c8a97e]' : 'text-white/30'}`}>★</span>
                       ))}
@@ -165,7 +195,7 @@ export default function ProductDetail() {
 
               {hasColors && (
                 <div>
-                  <p className="text-xs text-white/30 mb-3">Color{selectedColor ? `: ${selectedColor}` : ''}</p>
+                  <p className="text-xs text-white/30 mb-3">Color{selectedColor ? `: ${getColorName(selectedColor)}` : ''}</p>
                   <div className="flex gap-2">
                     {product.colors.map((color) => (
                       <button
@@ -173,7 +203,8 @@ export default function ProductDetail() {
                         onClick={() => setSelectedColor(color)}
                         className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all ${selectedColor === color ? 'border-white/100 scale-110' : 'border-white/10 hover:border-white/20'}`}
                         style={{ backgroundColor: color }}
-                        aria-label={`Color: ${color}`}
+                        aria-label={`Color: ${getColorName(color)}`}
+                        aria-pressed={selectedColor === color}
                       />
                     ))}
                   </div>
@@ -189,6 +220,7 @@ export default function ProductDetail() {
                         key={size}
                         onClick={() => setSelectedSize(size)}
                         className={`min-w-[44px] h-11 px-4 border text-xs transition-colors ${selectedSize === size ? 'border-white/10 text-white/70 bg-[#141414]' : 'border-white/10 text-white/30 hover:border-white/20'}`}
+                        aria-pressed={selectedSize === size}
                       >
                         {size}
                       </button>
@@ -218,7 +250,7 @@ export default function ProductDetail() {
                   {product.stock === 0 ? 'Sold Out' : added ? 'Added to Bag ✓' : 'Add to Bag'}
                 </button>
                 <button
-                  onClick={() => toggleWishlist(product)}
+                  onClick={handleWishlist}
                   className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50'}`}
                   aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
@@ -283,7 +315,7 @@ export default function ProductDetail() {
                           <p className="text-[0.6rem] text-white/30">{new Date(review.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
-                      <div className="flex gap-0.5">
+                      <div className="flex gap-0.5" role="img" aria-label={`${review.rating} out of 5 stars`}>
                         {[1, 2, 3, 4, 5].map((s) => (
                           <span key={s} className={`text-sm ${s <= review.rating ? 'text-[#c8a97e]' : 'text-white/30'}`}>★</span>
                         ))}

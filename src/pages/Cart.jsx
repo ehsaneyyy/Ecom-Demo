@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import Reveal from '../components/Reveal'
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, total, count } = useCart()
+  const { isLoggedIn } = useAuth()
   const [removingId, setRemovingId] = useState(null)
 
   if (items.length === 0) {
@@ -62,7 +64,8 @@ export default function Cart() {
                       <div className="flex items-center gap-0">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedColor, item.selectedSize)}
-                          className="w-9 h-9 flex items-center justify-center border border-white/10 text-white/30 hover:text-white/70 hover:border-white/20 transition-colors text-lg"
+                          disabled={item.quantity <= 1}
+                          className="w-9 h-9 flex items-center justify-center border border-white/10 text-white/30 hover:text-white/70 hover:border-white/20 transition-colors text-lg disabled:opacity-30 disabled:cursor-not-allowed"
                           aria-label="Decrease quantity"
                         >
                           −
@@ -116,12 +119,22 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
-              <Link
-                to="/checkout"
-                className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
-              >
-                Proceed to Checkout
-              </Link>
+              {isLoggedIn ? (
+                <Link
+                  to="/checkout"
+                  className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
+                >
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <Link
+                  to="/login"
+                  className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
+                >
+                  Sign in to Checkout
+                </Link>
+              )}
+              {!isLoggedIn && <p className="text-center text-[0.6rem] text-white/30 mt-3">Sign in or create an account to complete your order</p>}
               <Link to="/category/all" className="block text-center text-xs text-white/30 hover:text-white/30 transition-colors mt-4">
                 Continue Shopping
               </Link>
