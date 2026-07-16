@@ -18,13 +18,15 @@ from app.models import Order, OrderItem, Product, User
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 logger = logging.getLogger(__name__)
 
-client = None
-try:
-    import razorpay
-    if settings.razorpay_key_id and settings.razorpay_key_secret:
-        client = razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
-except ImportError:
-    pass
+
+def get_razorpay_client():
+    if not settings.razorpay_key_id or not settings.razorpay_key_secret:
+        return None
+    try:
+        import razorpay
+        return razorpay.Client(auth=(settings.razorpay_key_id, settings.razorpay_key_secret))
+    except ImportError:
+        return None
 
 
 class CreateOrderRequest(BaseModel):
@@ -46,6 +48,7 @@ async def create_order(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    client = get_razorpay_client()
     if not client:
         raise HTTPException(status_code=503, detail="Razorpay not configured")
 
@@ -96,6 +99,7 @@ async def verify_payment(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    client = get_razorpay_client()
     if not client:
         raise HTTPException(status_code=503, detail="Razorpay not configured")
 
