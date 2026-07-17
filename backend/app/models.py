@@ -11,6 +11,7 @@ class User(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     name: str = Field(index=True)
     email: str = Field(unique=True, index=True)
+    phone: str | None = None
     hashed_password: str
     is_admin: bool = Field(default=False)
     created_at: date = Field(default_factory=date.today)
@@ -101,6 +102,7 @@ class Address(SQLModel, table=True):
     user_id: str = Field(foreign_key="user.id")
     label: str = Field(default="Home")
     full_name: str
+    phone: str | None = None
     address_line1: str
     address_line2: str | None = None
     city: str

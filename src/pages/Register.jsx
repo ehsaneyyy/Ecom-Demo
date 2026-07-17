@@ -8,7 +8,7 @@ import Reveal from '../components/Reveal'
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', adminKey: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', adminKey: '' })
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -35,7 +35,7 @@ export default function Register() {
     if (!validate()) return
     setLoading(true)
     const name = `${form.firstName.trim()} ${form.lastName.trim()}`
-    const result = await register(name, form.email, form.password, form.adminKey)
+    const result = await register(name, form.email, form.password, form.adminKey, form.phone)
     setLoading(false)
     if (result.success) {
       navigate(result.isAdmin ? '/admin' : '/')
@@ -91,6 +91,18 @@ export default function Register() {
                 autoComplete="email"
               />
               {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
+            </div>
+
+            <div>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone Number <span className="text-white/20">(optional)</span></label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="98765 43210"
+                className="w-full px-4 py-3 bg-[#141414] border border-white/10 text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
+                autoComplete="tel"
+              />
             </div>
 
             <div>

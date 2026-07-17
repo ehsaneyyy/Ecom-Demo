@@ -25,10 +25,12 @@ class OrderCreateWithItems(BaseModel):
     items: list[OrderItemInput]
 
 
-def order_to_response(order: Order) -> OrderResponse:
+def order_to_response(order: Order, user: User | None = None) -> OrderResponse:
     return OrderResponse(
         id=order.id,
         user_id=order.user_id,
+        user_name=user.name if user else None,
+        user_phone=user.phone if user else None,
         total=order.total,
         status=order.status,
         shipping_address=order.shipping_address,
@@ -93,7 +95,7 @@ async def create_order(
     await session.refresh(order, ["items"])
 
     logger.info(f"Order {order.id} created, total: ${total:.2f}")
-    return order_to_response(order)
+    return order_to_response(order, current_user)
 
 
 @router.get("", response_model=list[OrderResponse])
@@ -109,10 +111,16 @@ async def list_orders(
         )
     orders = result.scalars().all()
 
+    user_ids = list({o.user_id for o in orders})
+    users_map = {}
+    if user_ids:
+        user_result = await session.execute(select(User).where(User.id.in_(user_ids)))
+        users_map = {u.id: u for u in user_result.scalars().all()}
+
     for order in orders:
         await session.refresh(order, ["items"])
 
-    return [order_to_response(o) for o in orders]
+    return [order_to_response(o, users_map.get(o.user_id)) for o in orders]
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
@@ -131,7 +139,10 @@ async def get_order(
 
     await session.refresh(order, ["items"])
 
-    return order_to_response(order)
+    user_result = await session.execute(select(User).where(User.id == order.user_id))
+    user = user_result.scalar_one_or_none()
+
+    return order_to_response(order, user)
 
 
 @router.patch("/{order_id}/status")

@@ -7,6 +7,7 @@ class UserRegister(BaseModel):
     name: str
     email: str
     password: str
+    phone: str | None = None
     admin_key: str | None = None
 
     @field_validator("name")
@@ -56,6 +57,7 @@ class UserResponse(BaseModel):
     id: str
     name: str
     email: str
+    phone: str | None = None
     is_admin: bool
 
     model_config = {"from_attributes": True}
@@ -151,6 +153,8 @@ class OrderItemCreate(BaseModel):
 class OrderResponse(BaseModel):
     id: str
     user_id: str
+    user_name: str | None = None
+    user_phone: str | None = None
     total: float
     status: str
     shipping_address: str
@@ -216,6 +220,7 @@ class CategoryResponse(BaseModel):
 class AddressCreate(BaseModel):
     label: str = "Home"
     full_name: str
+    phone: str | None = None
     address_line1: str
     address_line2: str | None = None
     city: str
@@ -228,6 +233,7 @@ class AddressCreate(BaseModel):
 class AddressUpdate(BaseModel):
     label: str | None = None
     full_name: str | None = None
+    phone: str | None = None
     address_line1: str | None = None
     address_line2: str | None = None
     city: str | None = None
@@ -241,6 +247,7 @@ class AddressResponse(BaseModel):
     id: str
     label: str
     full_name: str
+    phone: str | None = None
     address_line1: str
     address_line2: str | None = None
     city: str

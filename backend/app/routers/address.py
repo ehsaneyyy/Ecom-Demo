@@ -40,6 +40,7 @@ async def create_address(
         user_id=current_user.id,
         label=body.label,
         full_name=body.full_name,
+        phone=body.phone,
         address_line1=body.address_line1,
         address_line2=body.address_line2,
         city=body.city,

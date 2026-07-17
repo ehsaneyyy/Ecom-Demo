@@ -34,6 +34,7 @@ export default function Checkout() {
   const [addressForm, setAddressForm] = useState({
     label: 'Home',
     full_name: `${currentUser?.name || ''}`,
+    phone: currentUser?.phone || '',
     address_line1: '',
     address_line2: '',
     city: '',
@@ -119,6 +120,7 @@ export default function Checkout() {
     setAddressForm({
       label: 'Home',
       full_name: `${currentUser?.name || ''}`,
+      phone: currentUser?.phone || '',
       address_line1: '',
       address_line2: '',
       city: '',
@@ -325,6 +327,10 @@ export default function Checkout() {
                         <label className="block text-[0.6rem] text-white/30 mb-1">Full Name</label>
                         <input value={addressForm.full_name} onChange={(e) => setAddressForm({ ...addressForm, full_name: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1">Phone Number</label>
+                      <input value={addressForm.phone || ''} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} placeholder="98765 43210" className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors" />
                     </div>
                     <div>
                       <label className="block text-[0.6rem] text-white/30 mb-1">Address Line 1</label>

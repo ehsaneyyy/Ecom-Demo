@@ -45,9 +45,9 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const register = useCallback(async (name, email, password, adminKey) => {
+  const register = useCallback(async (name, email, password, adminKey, phone) => {
     try {
-      const data = await authApi.register(name, email, password, adminKey)
+      const data = await authApi.register(name, email, password, adminKey, phone)
       setToken(data.access_token)
       setCurrentUser(data.user)
       return { success: true, isAdmin: data.user.is_admin }

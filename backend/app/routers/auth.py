@@ -30,6 +30,7 @@ async def register(request: Request, body: UserRegister, session: AsyncSession =
     user = User(
         name=body.name,
         email=body.email,
+        phone=body.phone,
         hashed_password=hash_password(body.password),
         is_admin=is_admin,
     )
@@ -40,7 +41,7 @@ async def register(request: Request, body: UserRegister, session: AsyncSession =
     token = create_access_token(user.id)
     return TokenResponse(
         access_token=token,
-        user=UserResponse(id=user.id, name=user.name, email=user.email, is_admin=user.is_admin),
+        user=UserResponse(id=user.id, name=user.name, email=user.email, phone=user.phone, is_admin=user.is_admin),
     )
 
 
@@ -55,13 +56,13 @@ async def login(request: Request, body: UserLogin, session: AsyncSession = Depen
     token = create_access_token(user.id)
     return TokenResponse(
         access_token=token,
-        user=UserResponse(id=user.id, name=user.name, email=user.email, is_admin=user.is_admin),
+        user=UserResponse(id=user.id, name=user.name, email=user.email, phone=user.phone, is_admin=user.is_admin),
     )
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return UserResponse(id=current_user.id, name=current_user.name, email=current_user.email, is_admin=current_user.is_admin)
+    return UserResponse(id=current_user.id, name=current_user.name, email=current_user.email, phone=current_user.phone, is_admin=current_user.is_admin)
 
 
 @router.get("/users", response_model=list[UserResponse])
@@ -71,4 +72,4 @@ async def list_users(
 ):
     result = await session.execute(select(User).order_by(User.created_at.desc()))
     users = result.scalars().all()
-    return [UserResponse(id=u.id, name=u.name, email=u.email, is_admin=u.is_admin) for u in users]
+    return [UserResponse(id=u.id, name=u.name, email=u.email, phone=u.phone, is_admin=u.is_admin) for u in users]

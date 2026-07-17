@@ -22,6 +22,8 @@ function transformOrder(o) {
     ...o,
     createdAt: o.created_at,
     shippingAddress: o.shipping_address,
+    userName: o.user_name,
+    userPhone: o.user_phone,
     items: (o.items || []).map((i) => ({
       ...i,
       productName: i.product_name,

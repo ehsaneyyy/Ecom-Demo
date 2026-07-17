@@ -4,8 +4,8 @@ export const authApi = {
   login: (email, password) =>
     apiClient.post('/auth/login', { email, password }).then((r) => r.data),
 
-  register: (name, email, password, adminKey) =>
-    apiClient.post('/auth/register', { name, email, password, admin_key: adminKey || undefined }).then((r) => r.data),
+  register: (name, email, password, adminKey, phone) =>
+    apiClient.post('/auth/register', { name, email, password, phone: phone || undefined, admin_key: adminKey || undefined }).then((r) => r.data),
 
   me: () => apiClient.get('/auth/me').then((r) => r.data),
 
