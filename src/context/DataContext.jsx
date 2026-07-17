@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { productApi, orderApi, authApi } from '../api/api'
+import { productApi, orderApi, authApi, categoryApi, addressApi } from '../api/api'
 import { useAuth } from './AuthContext'
 
 const DataContext = createContext()
@@ -38,6 +38,8 @@ export function DataProvider({ children }) {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [customers, setCustomers] = useState([])
+  const [categories, setCategories] = useState([])
+  const [addresses, setAddresses] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchProducts = useCallback(async () => {
@@ -69,19 +71,78 @@ export function DataProvider({ children }) {
     }
   }, [token])
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const data = await categoryApi.list()
+      setCategories(data)
+    } catch (err) {
+      console.error('Failed to fetch categories:', err)
+    }
+  }, [])
+
+  const fetchAddresses = useCallback(async () => {
+    if (!token) return
+    try {
+      const data = await addressApi.list()
+      setAddresses(data)
+    } catch (err) {
+      console.error('Failed to fetch addresses:', err)
+    }
+  }, [token])
+
+  const addCategory = useCallback(async (data) => {
+    const newCat = await categoryApi.create(data)
+    setCategories((prev) => [...prev, newCat])
+    return newCat
+  }, [])
+
+  const updateCategory = useCallback(async (id, data) => {
+    const updated = await categoryApi.update(id, data)
+    setCategories((prev) => prev.map((c) => (c.id === id ? updated : c)))
+    return updated
+  }, [])
+
+  const deleteCategory = useCallback(async (id) => {
+    await categoryApi.delete(id)
+    setCategories((prev) => prev.filter((c) => c.id !== id))
+  }, [])
+
+  const addAddress = useCallback(async (data) => {
+    const newAddr = await addressApi.create(data)
+    setAddresses((prev) => {
+      const updated = data.is_default ? prev.map((a) => ({ ...a, is_default: false })) : prev
+      return [...updated, newAddr]
+    })
+    return newAddr
+  }, [])
+
+  const updateAddress = useCallback(async (id, data) => {
+    const updated = await addressApi.update(id, data)
+    setAddresses((prev) => {
+      const list = data.is_default ? prev.map((a) => ({ ...a, is_default: false })) : prev
+      return list.map((a) => (a.id === id ? updated : a))
+    })
+    return updated
+  }, [])
+
+  const deleteAddress = useCallback(async (id) => {
+    await addressApi.delete(id)
+    setAddresses((prev) => prev.filter((a) => a.id !== id))
+  }, [])
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      await fetchProducts()
+      await Promise.all([fetchProducts(), fetchCategories()])
       if (token) {
-        const promises = [fetchOrders()]
+        const promises = [fetchOrders(), fetchAddresses()]
         if (isAdmin) promises.push(fetchCustomers())
         await Promise.all(promises)
       }
       setLoading(false)
     }
     load()
-  }, [fetchProducts, fetchOrders, fetchCustomers, token, isAdmin])
+  }, [fetchProducts, fetchOrders, fetchCustomers, fetchCategories, fetchAddresses, token, isAdmin])
 
   const addProduct = useCallback(async (productData) => {
     try {
@@ -141,6 +202,8 @@ export function DataProvider({ children }) {
       products, loading,
       orders, addOrder, updateOrderStatus,
       customers, fetchCustomers,
+      categories, addCategory, updateCategory, deleteCategory, fetchCategories,
+      addresses, addAddress, updateAddress, deleteAddress, fetchAddresses,
       addProduct, updateProduct, deleteProduct,
       fetchProducts, fetchOrders,
     }}>

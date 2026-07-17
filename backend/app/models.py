@@ -17,6 +17,16 @@ class User(SQLModel, table=True):
 
     orders: list["Order"] = Relationship(back_populates="user")
     reviews: list["Review"] = Relationship(back_populates="user")
+    addresses: list["Address"] = Relationship(back_populates="user")
+
+
+class Category(SQLModel, table=True):
+    __tablename__ = "category"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    name: str = Field(unique=True, index=True)
+    color: str = Field(default="#1a1a1a")
+    accent: str = Field(default="#ffffff")
 
 
 class Product(SQLModel, table=True):
@@ -82,3 +92,21 @@ class Review(SQLModel, table=True):
 
     product: Product | None = Relationship(back_populates="reviews")
     user: User | None = Relationship(back_populates="reviews")
+
+
+class Address(SQLModel, table=True):
+    __tablename__ = "address"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id")
+    label: str = Field(default="Home")
+    full_name: str
+    address_line1: str
+    address_line2: str | None = None
+    city: str
+    state: str
+    zip_code: str
+    country: str = Field(default="India")
+    is_default: bool = Field(default=False)
+
+    user: User | None = Relationship(back_populates="addresses")

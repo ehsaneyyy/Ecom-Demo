@@ -5,18 +5,18 @@ import ConfirmModal from '../components/ConfirmModal'
 import { useToast } from '../components/Toast'
 
 export default function AdminProducts() {
-  const { products, addProduct, updateProduct, deleteProduct } = useData()
+  const { products, categories, addProduct, updateProduct, deleteProduct } = useData()
   const { show } = useToast()
   const [editing, setEditing] = useState(null)
   const [showAdd, setShowAdd] = useState(false)
-  const [form, setForm] = useState({ name: '', price: '', description: '', category: 'Ceramics', stock: '10' })
+  const [form, setForm] = useState({ name: '', price: '', description: '', category: categories[0]?.name || 'Living', stock: '10' })
   const [images, setImages] = useState([])
   const [uploading, setUploading] = useState(false)
   const [confirm, setConfirm] = useState({ open: false, onConfirm: null })
   const fileInputRef = useRef(null)
 
   const resetForm = () => {
-    setForm({ name: '', price: '', description: '', category: 'Ceramics', stock: '10' })
+    setForm({ name: '', price: '', description: '', category: categories[0]?.name || 'Living', stock: '10' })
     setImages([])
   }
 
@@ -116,10 +116,9 @@ export default function AdminProducts() {
             <div>
               <label className="block text-[0.6rem] text-white/30 mb-1">Category</label>
               <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors">
-                <option>Living</option>
-                <option>Bedroom</option>
-                <option>Kitchen</option>
-                <option>Office</option>
+                {categories.length > 0 ? categories.map((c) => (
+                  <option key={c.id}>{c.name}</option>
+                )) : <option>Living</option>}
               </select>
             </div>
             <div>

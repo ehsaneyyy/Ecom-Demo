@@ -10,7 +10,7 @@ from slowapi.util import get_remote_address
 
 from app.config import settings
 from app.database import create_db_and_tables
-from app.routers import auth, order, product, payments
+from app.routers import auth, order, product, payments, category, address
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -45,6 +45,8 @@ app.include_router(auth.router)
 app.include_router(product.router)
 app.include_router(order.router)
 app.include_router(payments.router)
+app.include_router(category.router)
+app.include_router(address.router)
 
 app.mount("/api/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 

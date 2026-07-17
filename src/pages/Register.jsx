@@ -2,19 +2,21 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { emailRegex } from '../utils/validate'
+import PasswordInput from '../components/PasswordInput'
 import Reveal from '../components/Reveal'
 
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', adminKey: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', adminKey: '' })
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const validate = () => {
     const errs = {}
-    if (!form.name.trim()) errs.name = 'Name is required'
+    if (!form.firstName.trim()) errs.firstName = 'First name is required'
+    if (!form.lastName.trim()) errs.lastName = 'Last name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!emailRegex.test(form.email)) errs.email = 'Invalid email'
     if (!form.password) errs.password = 'Password is required'
@@ -32,7 +34,8 @@ export default function Register() {
     setServerError('')
     if (!validate()) return
     setLoading(true)
-    const result = await register(form.name, form.email, form.password, form.adminKey)
+    const name = `${form.firstName.trim()} ${form.lastName.trim()}`
+    const result = await register(name, form.email, form.password, form.adminKey)
     setLoading(false)
     if (result.success) {
       navigate(result.isAdmin ? '/admin' : '/')
@@ -53,16 +56,29 @@ export default function Register() {
 
         <Reveal delay={100}>
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-[0.6rem] text-white/30 mb-1.5">Full Name</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => { setForm({ ...form, name: e.target.value }); setErrors({ ...errors, name: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.name ? 'border-red-500/50' : 'border-white/10'}`}
-                autoComplete="name"
-              />
-              {errors.name && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.name}</p>}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[0.6rem] text-white/30 mb-1.5">First Name</label>
+                <input
+                  type="text"
+                  value={form.firstName}
+                  onChange={(e) => { setForm({ ...form, firstName: e.target.value }); setErrors({ ...errors, firstName: '' }); setServerError('') }}
+                  className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.firstName ? 'border-red-500/50' : 'border-white/10'}`}
+                  autoComplete="given-name"
+                />
+                {errors.firstName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.firstName}</p>}
+              </div>
+              <div>
+                <label className="block text-[0.6rem] text-white/30 mb-1.5">Last Name</label>
+                <input
+                  type="text"
+                  value={form.lastName}
+                  onChange={(e) => { setForm({ ...form, lastName: e.target.value }); setErrors({ ...errors, lastName: '' }); setServerError('') }}
+                  className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.lastName ? 'border-red-500/50' : 'border-white/10'}`}
+                  autoComplete="family-name"
+                />
+                {errors.lastName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.lastName}</p>}
+              </div>
             </div>
 
             <div>
@@ -79,24 +95,22 @@ export default function Register() {
 
             <div>
               <label className="block text-[0.6rem] text-white/30 mb-1.5">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 value={form.password}
                 onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.password ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="new-password"
+                error={errors.password}
               />
               {errors.password && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.password}</p>}
             </div>
 
             <div>
               <label className="block text-[0.6rem] text-white/30 mb-1.5">Confirm Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 value={form.confirmPassword}
                 onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.confirmPassword ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="new-password"
+                error={errors.confirmPassword}
               />
               {errors.confirmPassword && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.confirmPassword}</p>}
             </div>

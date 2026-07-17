@@ -6,23 +6,16 @@ import Reveal from '../components/Reveal'
 import { SkeletonCard } from '../components/Skeleton'
 import { useSEO } from '../hooks/useSEO'
 
-const CATEGORIES_BASE = [
-  { id: 1, name: 'Living', color: '#1a1510', accent: '#c8a97e' },
-  { id: 2, name: 'Bedroom', color: '#101518', accent: '#8b7355' },
-  { id: 3, name: 'Kitchen', color: '#181a14', accent: '#c85a3e' },
-  { id: 4, name: 'Office', color: '#1a1418', accent: '#00d4ff' },
-]
-
 export default function Home() {
   useSEO({ title: undefined, description: undefined, path: '/' })
-  const { products, loading } = useData()
+  const { products, categories, loading } = useData()
 
-  const categories = useMemo(() =>
-    CATEGORIES_BASE.map((cat) => ({
+  const categoriesWithCount = useMemo(() =>
+    categories.map((cat) => ({
       ...cat,
       count: products.filter((p) => p.category === cat.name).length,
     })),
-    [products]
+    [products, categories]
   )
 
   return (
@@ -104,7 +97,7 @@ export default function Home() {
             </div>
           </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {categories.map((cat, i) => (
+            {categoriesWithCount.map((cat, i) => (
               <Reveal key={cat.id} delay={i * 100}>
                 <Link
                   to={`/category/${cat.name.toLowerCase()}`}

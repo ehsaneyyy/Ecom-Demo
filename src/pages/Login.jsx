@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { emailRegex } from '../utils/validate'
+import PasswordInput from '../components/PasswordInput'
 import Reveal from '../components/Reveal'
 
 export default function Login() {
@@ -63,12 +64,11 @@ export default function Login() {
 
             <div>
               <label className="block text-[0.6rem] text-white/30 mb-1.5">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 value={form.password}
                 onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: '' }); setServerError('') }}
-                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.password ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="current-password"
+                error={errors.password}
               />
               {errors.password && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.password}</p>}
             </div>

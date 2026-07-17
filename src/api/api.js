@@ -61,3 +61,17 @@ export const paymentApi = {
   verifyPayment: (data) =>
     apiClient.post('/payments/verify', data).then((r) => r.data),
 }
+
+export const categoryApi = {
+  list: () => apiClient.get('/category').then((r) => r.data),
+  create: (data) => apiClient.post('/category', data).then((r) => r.data),
+  update: (id, data) => apiClient.put(`/category/${id}`, data).then((r) => r.data),
+  delete: (id) => apiClient.delete(`/category/${id}`).then((r) => r.data),
+}
+
+export const addressApi = {
+  list: () => apiClient.get('/address').then((r) => r.data),
+  create: (data) => apiClient.post('/address', data).then((r) => r.data),
+  update: (id, data) => apiClient.put(`/address/${id}`, data).then((r) => r.data),
+  delete: (id) => apiClient.delete(`/address/${id}`).then((r) => r.data),
+}

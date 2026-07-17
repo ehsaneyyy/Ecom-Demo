@@ -186,3 +186,67 @@ class ReviewResponse(BaseModel):
     created_at: str
 
     model_config = {"from_attributes": True}
+
+
+class CategoryCreate(BaseModel):
+    name: str
+    color: str = "#1a1a1a"
+    accent: str = "#ffffff"
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        v = v.strip()
+        if len(v) < 1:
+            raise ValueError("Category name is required")
+        if len(v) > 50:
+            raise ValueError("Category name must be under 50 characters")
+        return v
+
+
+class CategoryResponse(BaseModel):
+    id: str
+    name: str
+    color: str
+    accent: str
+
+    model_config = {"from_attributes": True}
+
+
+class AddressCreate(BaseModel):
+    label: str = "Home"
+    full_name: str
+    address_line1: str
+    address_line2: str | None = None
+    city: str
+    state: str
+    zip_code: str
+    country: str = "India"
+    is_default: bool = False
+
+
+class AddressUpdate(BaseModel):
+    label: str | None = None
+    full_name: str | None = None
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zip_code: str | None = None
+    country: str | None = None
+    is_default: bool | None = None
+
+
+class AddressResponse(BaseModel):
+    id: str
+    label: str
+    full_name: str
+    address_line1: str
+    address_line2: str | None = None
+    city: str
+    state: str
+    zip_code: str
+    country: str
+    is_default: bool
+
+    model_config = {"from_attributes": True}

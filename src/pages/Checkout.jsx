@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import { useData } from '../context/DataContext'
 import { paymentApi } from '../api/api'
 import { emailRegex } from '../utils/validate'
 import Reveal from '../components/Reveal'
@@ -9,6 +10,7 @@ import Reveal from '../components/Reveal'
 export default function Checkout() {
   const { items, total, count, clearCart } = useCart()
   const { currentUser } = useAuth()
+  const { addresses, addAddress, updateAddress, deleteAddress } = useData()
   const navigate = useNavigate()
 
   const [step, setStep] = useState(1)
@@ -26,6 +28,107 @@ export default function Checkout() {
     zip: '',
     country: 'India',
   })
+
+  const [addressMode, setAddressMode] = useState('select')
+  const [selectedAddressId, setSelectedAddressId] = useState(null)
+  const [addressForm, setAddressForm] = useState({
+    label: 'Home',
+    full_name: `${currentUser?.name || ''}`,
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    country: 'India',
+    is_default: addresses.length === 0,
+  })
+  const [editingAddress, setEditingAddress] = useState(null)
+
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const def = addresses.find((a) => a.is_default) || addresses[0]
+      setSelectedAddressId(def.id)
+      applyAddress(def)
+    }
+  }, [addresses])
+
+  const applyAddress = (addr) => {
+    const parts = addr.full_name.split(' ')
+    setShipping({
+      firstName: parts[0] || '',
+      lastName: parts.slice(1).join(' ') || '',
+      email: currentUser?.email || '',
+      address: addr.address_line1 + (addr.address_line2 ? `, ${addr.address_line2}` : ''),
+      city: addr.city,
+      state: addr.state,
+      zip: addr.zip_code,
+      country: addr.country,
+    })
+  }
+
+  const handleSelectAddress = (addr) => {
+    setSelectedAddressId(addr.id)
+    applyAddress(addr)
+    setAddressMode('select')
+  }
+
+  const handleSaveAddress = async () => {
+    if (!addressForm.address_line1.trim() || !addressForm.city.trim() || !addressForm.state.trim() || !addressForm.zip_code.trim()) return
+    try {
+      if (editingAddress) {
+        await updateAddress(editingAddress.id, addressForm)
+      } else {
+        const newAddr = await addAddress(addressForm)
+        setSelectedAddressId(newAddr.id)
+        applyAddress(newAddr)
+      }
+      setAddressMode('select')
+      setEditingAddress(null)
+      resetAddressForm()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleEditAddress = (addr) => {
+    setEditingAddress(addr)
+    setAddressForm({
+      label: addr.label,
+      full_name: addr.full_name,
+      address_line1: addr.address_line1,
+      address_line2: addr.address_line2 || '',
+      city: addr.city,
+      state: addr.state,
+      zip_code: addr.zip_code,
+      country: addr.country,
+      is_default: addr.is_default,
+    })
+    setAddressMode('edit')
+  }
+
+  const handleDeleteAddress = async (addr) => {
+    await deleteAddress(addr.id)
+    if (selectedAddressId === addr.id && addresses.length > 1) {
+      const next = addresses.find((a) => a.id !== addr.id)
+      setSelectedAddressId(next.id)
+      applyAddress(next)
+    }
+  }
+
+  const resetAddressForm = () => {
+    setAddressForm({
+      label: 'Home',
+      full_name: `${currentUser?.name || ''}`,
+      address_line1: '',
+      address_line2: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: 'India',
+      is_default: false,
+    })
+    setEditingAddress(null)
+  }
 
   const shippingCost = total >= 10000 ? 0 : 500
   const tax = total * 0.08
@@ -124,14 +227,8 @@ export default function Checkout() {
           name: `${shipping.firstName} ${shipping.lastName}`,
           email: shipping.email,
         },
-        theme: {
-          color: '#0a0a0a',
-        },
-        modal: {
-          ondismiss: () => {
-            setIsPlacing(false)
-          },
-        },
+        theme: { color: '#0a0a0a' },
+        modal: { ondismiss: () => { setIsPlacing(false) } },
       }
 
       const rzp = new window.Razorpay(options)
@@ -168,49 +265,151 @@ export default function Checkout() {
             <Reveal>
               <div className="space-y-5">
                 <h2 className="text-lg font-medium text-white/50 mb-6">Shipping Information</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">First Name</label>
-                    <input value={shipping.firstName} onChange={(e) => setShipping({ ...shipping, firstName: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.firstName ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.firstName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.firstName}</p>}
+
+                {addresses.length > 0 && addressMode === 'select' && (
+                  <div className="bg-[#141414] rounded-lg border border-white/10 p-4 sm:p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-white/30">Saved Addresses</p>
+                      <button onClick={() => { resetAddressForm(); setAddressMode('new') }} className="text-[0.6rem] text-white/30 hover:text-white/50 transition-colors">
+                        + Add New
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {addresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          className={`p-3 sm:p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === addr.id ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}
+                          onClick={() => handleSelectAddress(addr)}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-xs text-white/50 font-medium">{addr.label}</p>
+                                {addr.is_default && <span className="text-[0.5rem] text-[#4ade80]/60 bg-[#4ade80]/10 px-1.5 py-0.5 rounded">Default</span>}
+                              </div>
+                              <p className="text-[0.6rem] text-white/30">{addr.full_name}</p>
+                              <p className="text-[0.6rem] text-white/30">{addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ''}</p>
+                              <p className="text-[0.6rem] text-white/30">{addr.city}, {addr.state} {addr.zip_code}</p>
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button onClick={(e) => { e.stopPropagation(); handleEditAddress(addr) }} className="px-2 py-1 text-[0.55rem] text-white/30 hover:text-white/50 border border-white/10 hover:border-white/20 transition-colors">Edit</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(addr) }} className="px-2 py-1 text-[0.55rem] text-red-400/50 hover:text-red-400/80 border border-white/10 hover:border-red-400/20 transition-colors">Del</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(addressMode === 'new' || addressMode === 'edit' || addresses.length === 0) && (
+                  <div className="bg-[#141414] rounded-lg border border-white/10 p-4 sm:p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-white/30">{editingAddress ? 'Edit Address' : 'New Address'}</p>
+                      {addresses.length > 0 && (
+                        <button onClick={() => { setAddressMode('select'); setEditingAddress(null) }} className="text-[0.6rem] text-white/30 hover:text-white/50 transition-colors">
+                          ← Back to saved
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1">Label</label>
+                        <select value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors">
+                          <option>Home</option>
+                          <option>Work</option>
+                          <option>Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1">Full Name</label>
+                        <input value={addressForm.full_name} onChange={(e) => setAddressForm({ ...addressForm, full_name: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1">Address Line 1</label>
+                      <input value={addressForm.address_line1} onChange={(e) => setAddressForm({ ...addressForm, address_line1: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1">Address Line 2 <span className="text-white/20">(optional)</span></label>
+                      <input value={addressForm.address_line2} onChange={(e) => setAddressForm({ ...addressForm, address_line2: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1">City</label>
+                        <input value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                      </div>
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1">State</label>
+                        <input value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                      </div>
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1">ZIP</label>
+                        <input value={addressForm.zip_code} onChange={(e) => setAddressForm({ ...addressForm, zip_code: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={addressForm.is_default} onChange={(e) => setAddressForm({ ...addressForm, is_default: e.target.checked })} className="w-4 h-4 rounded border-white/20 bg-[#141414] text-white/50 focus:ring-white/20" />
+                      <span className="text-[0.6rem] text-white/30">Set as default address</span>
+                    </label>
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={handleSaveAddress} className="px-5 py-2.5 bg-white text-black text-xs tracking-[0.1em] uppercase hover:bg-white/90 transition-colors min-h-[40px]">
+                        {editingAddress ? 'Update' : 'Save Address'}
+                      </button>
+                      {addresses.length > 0 && (
+                        <button onClick={() => { setAddressMode('select'); setEditingAddress(null) }} className="px-5 py-2.5 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[40px]">
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">First Name</label>
+                      <input value={shipping.firstName} onChange={(e) => setShipping({ ...shipping, firstName: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.firstName ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.firstName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.firstName}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Last Name</label>
+                      <input value={shipping.lastName} onChange={(e) => setShipping({ ...shipping, lastName: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.lastName ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.lastName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.lastName}</p>}
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">Last Name</label>
-                    <input value={shipping.lastName} onChange={(e) => setShipping({ ...shipping, lastName: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.lastName ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.lastName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.lastName}</p>}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
-                  <input type="email" value={shipping.email} onChange={(e) => setShipping({ ...shipping, email: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`} />
-                  {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
-                </div>
-                <div>
-                  <label className="block text-[0.6rem] text-white/30 mb-1.5">Address</label>
-                  <input value={shipping.address} onChange={(e) => setShipping({ ...shipping, address: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.address ? 'border-red-500/50' : 'border-white/10'}`} />
-                  {errors.address && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.address}</p>}
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">City</label>
-                    <input value={shipping.city} onChange={(e) => setShipping({ ...shipping, city: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.city ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.city && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.city}</p>}
+                    <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
+                    <input type="email" value={shipping.email} onChange={(e) => setShipping({ ...shipping, email: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`} />
+                    {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
                   </div>
                   <div>
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">State</label>
-                    <input value={shipping.state} onChange={(e) => setShipping({ ...shipping, state: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.state ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.state && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.state}</p>}
+                    <label className="block text-[0.6rem] text-white/30 mb-1.5">Address</label>
+                    <input value={shipping.address} onChange={(e) => setShipping({ ...shipping, address: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.address ? 'border-red-500/50' : 'border-white/10'}`} />
+                    {errors.address && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.address}</p>}
                   </div>
-                  <div>
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">ZIP</label>
-                    <input value={shipping.zip} onChange={(e) => setShipping({ ...shipping, zip: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.zip ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.zip && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.zip}</p>}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">City</label>
+                      <input value={shipping.city} onChange={(e) => setShipping({ ...shipping, city: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.city ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.city && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.city}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">State</label>
+                      <input value={shipping.state} onChange={(e) => setShipping({ ...shipping, state: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.state ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.state && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.state}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">ZIP</label>
+                      <input value={shipping.zip} onChange={(e) => setShipping({ ...shipping, zip: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.zip ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.zip && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.zip}</p>}
+                    </div>
                   </div>
-                </div>
-                <div className="flex justify-end pt-4">
-                  <button onClick={handleNext} className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px]">
-                    Review Order
-                  </button>
+                  <div className="flex justify-end pt-4">
+                    <button onClick={handleNext} className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px]">
+                      Review Order
+                    </button>
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -265,12 +464,8 @@ export default function Checkout() {
               <div className="space-y-3 mb-6">
                 {items.map((item) => (
                   <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="flex gap-3">
-                    <div className="w-12 h-14 rounded flex-shrink-0 flex items-center justify-center text-white/30 overflow-hidden" style={{ background: item.images?.length ? 'transparent' : item.color }}>
-                      {item.images?.length ? (
-                        <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
-                      )}
+                    <div className="w-12 h-14 rounded flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ background: item.color || '#141414' }}>
+                      <span className="text-[0.4rem] tracking-[0.15em] uppercase text-white/25 text-center px-0.5">{item.name}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-white/50 truncate">{item.name}</p>

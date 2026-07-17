@@ -30,6 +30,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./admin/AdminProducts'))
+const AdminCategories = lazy(() => import('./admin/AdminCategories'))
 const AdminOrders = lazy(() => import('./admin/AdminOrders'))
 const AdminCustomers = lazy(() => import('./admin/AdminCustomers'))
 
@@ -110,6 +111,7 @@ export default function App() {
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="products" element={<AdminProducts />} />
+                        <Route path="categories" element={<AdminCategories />} />
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="customers" element={<AdminCustomers />} />
                       </Route>

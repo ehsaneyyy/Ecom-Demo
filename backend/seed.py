@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from app.auth_utils import hash_password
 from app.database import async_session_factory, create_db_and_tables
-from app.models import OrderItem, Order, Product, Review, User
+from app.models import Address, Category, OrderItem, Order, Product, Review, User
 
 PRODUCTS = [
     {"name": "Minimal Leather Bag", "price": 15900, "compare_at_price": 18700, "tag": "New", "category": "Living", "color": "#2a2218", "description": "Hand-stitched full-grain leather tote with solid brass hardware.", "colors": ["#2a2218", "#5c3d2e", "#1a1a1a"], "stock": 12},
@@ -29,10 +29,22 @@ PRODUCTS = [
 
 ADMIN_USER = {"name": "Admin", "email": "admin@atelier.com", "password": "admin123", "is_admin": True}
 
+DEFAULT_CATEGORIES = [
+    {"name": "Living", "color": "#1a1510", "accent": "#c8a97e"},
+    {"name": "Bedroom", "color": "#101518", "accent": "#8b7355"},
+    {"name": "Kitchen", "color": "#181a14", "accent": "#c85a3e"},
+    {"name": "Office", "color": "#1a1418", "accent": "#00d4ff"},
+]
+
 
 async def seed():
     await create_db_and_tables()
     async with async_session_factory() as session:
+        result = await session.execute(select(Category))
+        if not result.scalars().first():
+            for c in DEFAULT_CATEGORIES:
+                session.add(Category(name=c["name"], color=c["color"], accent=c["accent"]))
+
         result = await session.execute(select(Product))
         if result.scalars().first():
             print("Database already seeded.")
@@ -71,12 +83,18 @@ async def reseed():
         await session.execute(sa_delete(Review))
         await session.execute(sa_delete(OrderItem))
         await session.execute(sa_delete(Order))
+        await session.execute(sa_delete(Address))
         result = await session.execute(select(Product))
         existing = result.scalars().all()
         for p in existing:
             await session.delete(p)
         await session.commit()
-        print(f"Deleted {len(existing)} existing products and related orders.")
+        print(f"Deleted {len(existing)} existing products and related data.")
+
+        cat_result = await session.execute(select(Category))
+        if not cat_result.scalars().first():
+            for c in DEFAULT_CATEGORIES:
+                session.add(Category(name=c["name"], color=c["color"], accent=c["accent"]))
 
         for p in PRODUCTS:
             product = Product(
@@ -88,13 +106,12 @@ async def reseed():
                 description=p["description"],
                 color=p["color"],
                 colors=json.dumps(p.get("colors")) if p.get("colors") else None,
-                images=json.dumps(p.get("images")) if p.get("images") else None,
                 stock=p["stock"],
             )
             session.add(product)
 
         await session.commit()
-        print(f"Re-seeded {len(PRODUCTS)} products.")
+        print(f"Re-seeded {len(PRODUCTS)} products and categories.")
 
 
 if __name__ == "__main__":
