@@ -15,8 +15,8 @@ export default function PasswordInput({ value, onChange, placeholder, autoComple
       />
       <button
         type="button"
-        onClick={() => setShow(!show)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors p-1"
+        onMouseDown={(e) => { e.preventDefault(); setShow((s) => !s) }}
+        className="absolute right-1 top-1/2 -translate-y-1/2 z-10 text-white/30 hover:text-white/50 transition-colors w-9 h-9 flex items-center justify-center cursor-pointer"
         tabIndex={-1}
         aria-label={show ? 'Hide password' : 'Show password'}
       >

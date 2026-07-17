@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Link, Outlet } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
@@ -92,6 +92,9 @@ export default function AdminLayout() {
             </svg>
           </button>
           <div className="flex-1" />
+          <Link to="/" className="text-[0.6rem] text-white/30 hover:text-white/50 border border-white/10 hover:border-white/20 px-3 py-1.5 transition-colors">
+            Back to Store
+          </Link>
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
               {currentUser?.name?.charAt(0) || 'A'}

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
+import { useAuth } from './AuthContext'
 
 const CartContext = createContext()
 
@@ -6,19 +7,36 @@ export function useCart() {
   return useContext(CartContext)
 }
 
+function getCartKey(userId) {
+  return userId ? `atelier-cart-${userId}` : 'atelier-cart-guest'
+}
+
+function loadCart(userId) {
+  try {
+    const key = getCartKey(userId)
+    const stored = localStorage.getItem(key)
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
 export function CartProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    try {
-      const stored = localStorage.getItem('atelier-cart')
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
-  })
+  const { currentUser } = useAuth()
+  const userId = currentUser?.id || null
+  const [items, setItems] = useState(() => loadCart(userId))
+  const prevUserId = useRef(userId)
 
   useEffect(() => {
-    localStorage.setItem('atelier-cart', JSON.stringify(items))
-  }, [items])
+    if (prevUserId.current !== userId) {
+      setItems(loadCart(userId))
+      prevUserId.current = userId
+    }
+  }, [userId])
+
+  useEffect(() => {
+    localStorage.setItem(getCartKey(userId), JSON.stringify(items))
+  }, [items, userId])
 
   const addItem = useCallback((product, quantity = 1, selectedColor = null, selectedSize = null) => {
     setItems((prev) => {
