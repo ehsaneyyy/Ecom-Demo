@@ -70,12 +70,17 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-            ) : (
+            ) : products.length > 0 ? (
               products.map((p, i) => (
                 <Reveal key={p.id} delay={i * 80}>
                   <ProductCard product={p} />
                 </Reveal>
               ))
+            ) : (
+              <div className="col-span-full text-center py-20">
+                <p className="text-sm text-white/30 mb-4">No products available yet.</p>
+                <p className="text-xs text-white/20">Check back soon for our latest collection.</p>
+              </div>
             )}
           </div>
         </div>

@@ -6,7 +6,7 @@ export default function AdminCustomers() {
   const [search, setSearch] = useState('')
   const [expandedCustomer, setExpandedCustomer] = useState(null)
 
-  const filtered = customers.filter((c) =>
+  const filtered = customers.filter((c) => !c.is_admin).filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase())
   )

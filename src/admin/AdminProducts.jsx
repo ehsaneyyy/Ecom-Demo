@@ -192,11 +192,13 @@ export default function AdminProducts() {
                 <tr key={product.id} className="border-b border-white/10 last:border-0">
                   <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-[#141414]">
+                      <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0" style={{ background: product.color || '#141414' }}>
                         {product.images && product.images.length > 0 ? (
                           <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white/30 text-[0.5rem]">IMG</div>
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-[0.4rem] tracking-[0.15em] uppercase text-white/30 text-center px-0.5 leading-tight">{product.category}</span>
+                          </div>
                         )}
                       </div>
                       <div className="min-w-0">

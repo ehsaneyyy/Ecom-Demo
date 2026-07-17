@@ -3,6 +3,7 @@ import { statusColors } from '../constants/orderStatuses'
 
 export default function AdminDashboard() {
   const { products, orders, customers } = useData()
+  const realCustomers = customers.filter((c) => !c.is_admin)
 
   const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0)
   const pendingOrders = orders.filter((o) => o.status === 'pending').length
@@ -12,7 +13,7 @@ export default function AdminDashboard() {
     { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, sub: `${orders.length} orders`, color: 'text-[#4ade80]' },
     { label: 'Products', value: products.length, sub: `${products.filter((p) => p.stock <= 5).length} low stock`, color: 'text-[#60a5fa]' },
     { label: 'Pending Orders', value: pendingOrders, sub: 'Needs attention', color: 'text-[#c8a97e]' },
-    { label: 'Customers', value: customers.length, sub: `Avg. ₹${avgOrderValue.toFixed(0)} per order`, color: 'text-[#a78bfa]' },
+    { label: 'Customers', value: realCustomers.length, sub: `Avg. ₹${avgOrderValue.toFixed(0)} per order`, color: 'text-[#a78bfa]' },
   ]
 
   const recentOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5)

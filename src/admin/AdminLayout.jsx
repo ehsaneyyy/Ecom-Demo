@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 
 const nav = [
   { to: '/admin', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', end: true },
@@ -10,6 +11,7 @@ const nav = [
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { currentUser } = useAuth()
 
   return (
     <div className="flex h-screen bg-[#0a0a0a]">
@@ -94,10 +96,10 @@ export default function AdminLayout() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-[#141414] flex items-center justify-center text-[0.5rem] text-white/30">
-              A
+            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
+              {currentUser?.name?.charAt(0) || 'A'}
             </div>
-            <span className="text-xs text-white/30 hidden sm:block">admin@atelier.com</span>
+            <span className="text-xs text-white/30 hidden sm:block">{currentUser?.email || ''}</span>
           </div>
         </header>
 
