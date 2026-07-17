@@ -88,14 +88,16 @@ export default function Navbar() {
               </svg>
               Search
             </button>
-            <Link to="/wishlist" className={`${linkClass('/wishlist')} relative text-xs`} aria-label="Wishlist">
-              Wishlist
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1.5 -right-4 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+            {isLoggedIn && (
+              <Link to="/wishlist" className={`${linkClass('/wishlist')} relative text-xs`} aria-label="Wishlist">
+                Wishlist
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1.5 -right-4 text-[0.5rem] w-4 h-4 flex items-center justify-center bg-white/20 rounded-full text-white/70">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
             {isLoggedIn ? (
               <div className="relative">
                 <button
@@ -193,9 +195,11 @@ export default function Navbar() {
               <Link to="/" className={`block py-3 text-sm transition-colors ${isActive('/') ? 'text-white' : 'text-white/60 hover:text-white'}`}>Home</Link>
               <Link to="/category/all" className={`block py-3 text-sm transition-colors ${isActive('/category') ? 'text-white' : 'text-white/60 hover:text-white'}`}>Shop</Link>
               <Link to="/about" className={`block py-3 text-sm transition-colors ${isActive('/about') ? 'text-white' : 'text-white/60 hover:text-white'}`}>About</Link>
-              <Link to="/wishlist" className={`block py-3 text-sm transition-colors ${isActive('/wishlist') ? 'text-white' : 'text-white/60 hover:text-white'}`}>
-                Wishlist {wishlistCount > 0 && <span className="text-white/30">({wishlistCount})</span>}
-              </Link>
+              {isLoggedIn && (
+                <Link to="/wishlist" className={`block py-3 text-sm transition-colors ${isActive('/wishlist') ? 'text-white' : 'text-white/60 hover:text-white'}`}>
+                  Wishlist {wishlistCount > 0 && <span className="text-white/30">({wishlistCount})</span>}
+                </Link>
+              )}
               <div className="border-t border-white/5 my-3" />
               {isLoggedIn ? (
                 <>
