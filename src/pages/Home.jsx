@@ -21,7 +21,7 @@ export default function Home() {
     CATEGORIES_BASE.map((cat) => ({
       ...cat,
       count: products.filter((p) => p.category === cat.name).length,
-    })).filter((cat) => cat.count > 0),
+    })),
     [products]
   )
 
@@ -114,7 +114,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-br opacity-40" style={{ backgroundImage: `linear-gradient(135deg, ${cat.accent}20, transparent)` }} />
                   <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6">
                     <h3 className="text-base sm:text-lg font-semibold text-white/90 mb-1 group-hover:text-white transition-colors">{cat.name}</h3>
-                    <p className="text-[0.6rem] sm:text-xs text-white/50">{cat.count} products</p>
+                    <p className={`text-[0.6rem] sm:text-xs ${cat.count === 0 ? 'text-red-400/60' : 'text-white/50'}`}>{cat.count} products</p>
                   </div>
                   <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.04] transition-colors duration-500" />
                   <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
