@@ -134,7 +134,7 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16">
           <Reveal direction="left">
             <div className="space-y-3 sm:space-y-4">
-              <div className="aspect-square rounded-lg overflow-hidden flex items-center justify-center" style={{ background: hasImages ? 'transparent' : product.color }}>
+              <div className="aspect-square rounded-lg overflow-hidden flex items-center justify-center relative" style={{ background: hasImages ? 'transparent' : product.color }}>
                 {hasImages ? (
                   <img
                     src={product.images[selectedImage]}
@@ -142,7 +142,14 @@ export default function ProductDetail() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-4xl sm:text-5xl font-bold text-white/[0.06] text-center px-8 leading-tight">{product.name}</span>
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent" />
+                    <div className="relative flex flex-col items-center gap-4 px-8">
+                      <span className="text-4xl sm:text-5xl font-bold text-white/[0.08] text-center leading-tight">{product.name}</span>
+                      <div className="w-12 h-px bg-white/10" />
+                      <span className="text-[0.6rem] tracking-[0.3em] uppercase text-white/20">{product.category}</span>
+                    </div>
+                  </>
                 )}
               </div>
               {hasImages && product.images.length > 1 && (

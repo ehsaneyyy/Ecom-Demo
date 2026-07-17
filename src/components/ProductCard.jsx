@@ -14,9 +14,14 @@ export default function ProductCard({ product }) {
             loading="lazy"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 text-center px-4 leading-relaxed">{product.name}</span>
-          </div>
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6">
+              <span className="text-[0.55rem] tracking-[0.35em] uppercase text-white/40 text-center leading-relaxed">{product.name}</span>
+              <div className="w-8 h-px bg-white/10" />
+              <span className="text-[0.5rem] tracking-[0.2em] uppercase text-white/20">{product.category}</span>
+            </div>
+          </>
         )}
         {product.tag && (
           <span className="absolute top-3 left-3 text-[0.55rem] tracking-[0.15em] uppercase px-2.5 py-1 bg-[#141414] backdrop-blur-sm text-white/50">

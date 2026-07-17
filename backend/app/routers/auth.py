@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -9,10 +11,12 @@ from app.models import User
 from app.schemas import TokenResponse, UserLogin, UserRegister, UserResponse
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/register", response_model=TokenResponse)
-async def register(body: UserRegister, session: AsyncSession = Depends(get_session)):
+@limiter.limit("5/minute")
+async def register(request: Request, body: UserRegister, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(User).where(User.email == body.email))
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -41,7 +45,8 @@ async def register(body: UserRegister, session: AsyncSession = Depends(get_sessi
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(body: UserLogin, session: AsyncSession = Depends(get_session)):
+@limiter.limit("10/minute")
+async def login(request: Request, body: UserLogin, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.hashed_password):

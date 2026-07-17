@@ -44,12 +44,8 @@ export default function Cart() {
             return (
               <Reveal key={itemKey} delay={i * 60}>
                 <div className={`flex gap-4 sm:gap-6 py-6 sm:py-8 border-b border-white/10 transition-opacity duration-200 ${isRemoving ? 'opacity-0' : 'opacity-100'}`}>
-                  <Link to={`/product/${item.id}`} className="w-20 h-24 sm:w-28 sm:h-32 rounded flex-shrink-0 flex items-center justify-center text-white/30 hover:text-white/30 transition-colors" style={{ background: item.color }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="sm:w-6 sm:h-6">
-                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                      <line x1="3" y1="6" x2="21" y2="6" />
-                      <path d="M16 10a4 4 0 0 1-8 0" />
-                    </svg>
+                  <Link to={`/product/${item.id}`} className="w-20 h-24 sm:w-28 sm:h-32 rounded flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ background: item.color || '#141414' }}>
+                    <span className="text-[0.45rem] tracking-[0.2em] uppercase text-white/25 text-center px-2 leading-relaxed">{item.name}</span>
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

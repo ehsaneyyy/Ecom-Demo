@@ -19,6 +19,9 @@ export default function Register() {
     else if (!emailRegex.test(form.email)) errs.email = 'Invalid email'
     if (!form.password) errs.password = 'Password is required'
     else if (form.password.length < 8) errs.password = 'At least 8 characters'
+    else if (!/[A-Z]/.test(form.password)) errs.password = 'Need an uppercase letter'
+    else if (!/[a-z]/.test(form.password)) errs.password = 'Need a lowercase letter'
+    else if (!/[0-9]/.test(form.password)) errs.password = 'Need a number'
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match'
     setErrors(errs)
     return Object.keys(errs).length === 0

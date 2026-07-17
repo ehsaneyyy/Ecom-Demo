@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+import re
+
+from pydantic import BaseModel, field_validator
 
 
 class UserRegister(BaseModel):
@@ -7,10 +9,47 @@ class UserRegister(BaseModel):
     password: str
     admin_key: str | None = None
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        if len(v.strip()) < 2:
+            raise ValueError("Name must be at least 2 characters")
+        if len(v.strip()) > 100:
+            raise ValueError("Name must be under 100 characters")
+        return v.strip()
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v):
+        v = v.strip().lower()
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", v):
+            raise ValueError("Invalid email address")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(v) > 128:
+            raise ValueError("Password must be under 128 characters")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain an uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain a lowercase letter")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must contain a digit")
+        return v
+
 
 class UserLogin(BaseModel):
     email: str
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v):
+        return v.strip().lower()
 
 
 class UserResponse(BaseModel):
@@ -40,6 +79,31 @@ class ProductCreate(BaseModel):
     sizes: list[str] | None = None
     images: list[str] | None = None
     stock: int = 0
+
+    @field_validator("price")
+    @classmethod
+    def validate_price(cls, v):
+        if v <= 0:
+            raise ValueError("Price must be positive")
+        if v > 10000000:
+            raise ValueError("Price too high")
+        return round(v, 2)
+
+    @field_validator("stock")
+    @classmethod
+    def validate_stock(cls, v):
+        if v < 0:
+            raise ValueError("Stock cannot be negative")
+        return v
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        if len(v.strip()) < 1:
+            raise ValueError("Product name is required")
+        if len(v.strip()) > 200:
+            raise ValueError("Product name must be under 200 characters")
+        return v.strip()
 
 
 class ProductUpdate(BaseModel):

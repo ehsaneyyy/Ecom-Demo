@@ -6,10 +6,10 @@ import { SkeletonCard } from '../components/Skeleton'
 import { useSEO } from '../hooks/useSEO'
 
 const CATEGORIES = [
-  { id: 1, name: 'Living', count: 7, color: '#1a1510' },
-  { id: 2, name: 'Bedroom', count: 3, color: '#101518' },
-  { id: 3, name: 'Kitchen', count: 4, color: '#181a14' },
-  { id: 4, name: 'Office', count: 3, color: '#1a1418' },
+  { id: 1, name: 'Living', count: 7, color: '#1a1510', accent: '#c8a97e' },
+  { id: 2, name: 'Bedroom', count: 3, color: '#101518', accent: '#8b7355' },
+  { id: 3, name: 'Kitchen', count: 4, color: '#181a14', accent: '#c85a3e' },
+  { id: 4, name: 'Office', count: 3, color: '#1a1418', accent: '#00d4ff' },
 ]
 
 export default function Home() {
@@ -21,7 +21,7 @@ export default function Home() {
       <section className="relative min-h-[85vh] sm:h-screen flex flex-col">
         <div className="flex-1 flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#0a0a0a] to-[#101218]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] rounded-full bg-white/[0.02] blur-[80px] sm:blur-[100px]" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] rounded-full bg-[#c8a97e]/[0.04] blur-[80px] sm:blur-[100px]" />
           <div className="relative z-10 text-center max-w-4xl px-4 sm:px-6">
             <Reveal delay={0}>
               <p className="text-[0.6rem] sm:text-xs tracking-[0.4em] uppercase text-white/30 mb-4 sm:mb-6">Summer 2026</p>
@@ -97,11 +97,13 @@ export default function Home() {
                   className="group relative aspect-[4/5] overflow-hidden block"
                   style={{ background: cat.color }}
                 >
+                  <div className="absolute inset-0 bg-gradient-to-br opacity-40" style={{ backgroundImage: `linear-gradient(135deg, ${cat.accent}20, transparent)` }} />
                   <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-white/70 mb-1">{cat.name}</h3>
-                    <p className="text-[0.6rem] sm:text-xs text-white/30">{cat.count} products</p>
+                    <h3 className="text-base sm:text-lg font-semibold text-white/90 mb-1 group-hover:text-white transition-colors">{cat.name}</h3>
+                    <p className="text-[0.6rem] sm:text-xs text-white/50">{cat.count} products</p>
                   </div>
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.03] transition-colors duration-500" />
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.04] transition-colors duration-500" />
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                 </Link>
               </Reveal>
             ))}
@@ -114,8 +116,8 @@ export default function Home() {
           <Reveal direction="left">
             <div className="relative overflow-hidden bg-[#141210] aspect-[16/9] sm:aspect-[21/9] flex items-center">
               <div className="absolute inset-0">
-                <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] rounded-full bg-[#c85a3e]/10 blur-[60px] sm:blur-[100px]" />
-                <div className="absolute top-1/3 right-1/4 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] rounded-full bg-[#00d4ff]/5 blur-[40px] sm:blur-[80px]" />
+                <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] rounded-full bg-[#c85a3e]/20 blur-[60px] sm:blur-[100px]" />
+                <div className="absolute top-1/3 right-1/4 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] rounded-full bg-[#00d4ff]/10 blur-[40px] sm:blur-[80px]" />
               </div>
               <div className="relative z-10 p-6 sm:p-12 md:p-20 max-w-2xl">
                 <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-4">Limited Edition</p>
