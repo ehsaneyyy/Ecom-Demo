@@ -40,9 +40,7 @@ export default function AdminLayout() {
             ))}
           </nav>
           <div className="p-4 border-t border-white/10">
-            <NavLink to="/" className="flex items-center gap-2 text-xs text-white/30 hover:text-white/30 transition-colors">
-              ← Back to Store
-            </NavLink>
+            <span className="text-[0.55rem] text-white/20">Atelier Admin v1.0</span>
           </div>
         </div>
       </div>
@@ -75,9 +73,7 @@ export default function AdminLayout() {
               ))}
             </nav>
             <div className="p-4 border-t border-white/10">
-              <NavLink to="/" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2 text-xs text-white/30 hover:text-white/30 transition-colors">
-                ← Back to Store
-              </NavLink>
+              <span className="text-[0.55rem] text-white/20">Atelier Admin v1.0</span>
             </div>
           </div>
         </div>
