@@ -54,3 +54,12 @@ app.mount("/api/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Server is starting up, please try again in a moment."},
+    )
