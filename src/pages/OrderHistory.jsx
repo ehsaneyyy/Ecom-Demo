@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
+import { orderApi } from '../api/api'
 import { statusColors } from '../constants/orderStatuses'
 import Reveal from '../components/Reveal'
 import InvoiceButton from '../components/InvoiceButton'
@@ -10,6 +11,20 @@ export default function OrderHistory() {
   const { orders } = useData()
   const { currentUser } = useAuth()
   const [expandedOrder, setExpandedOrder] = useState(null)
+  const [cancelling, setCancelling] = useState(null)
+
+  const handleCancel = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return
+    setCancelling(orderId)
+    try {
+      await orderApi.cancel(orderId)
+      window.location.reload()
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to cancel order')
+    } finally {
+      setCancelling(null)
+    }
+  }
 
   if (!currentUser) {
     return (
@@ -43,6 +58,7 @@ export default function OrderHistory() {
         <div className="space-y-4">
           {orders.map((order, i) => {
             const isExpanded = expandedOrder === order.id
+            const canCancel = order.status === 'pending' || order.status === 'processing'
             return (
               <Reveal key={order.id} delay={i * 60}>
                 <div className="bg-[#141414] rounded-lg border border-white/10 overflow-hidden">
@@ -75,19 +91,28 @@ export default function OrderHistory() {
                         <p className="text-[0.6rem] text-white/30 mb-1">Shipping Address</p>
                         <p className="text-xs text-white/50">{order.shippingAddress}</p>
                       </div>
-                       <div>
+                      <div>
                         <p className="text-[0.6rem] text-white/30 mb-2">Items</p>
                         <div className="space-y-2">
                           {order.items.map((item, i) => (
                             <div key={i} className="flex justify-between text-xs py-2 border-b border-white/10 last:border-0">
                               <span className="text-white/30">{item.productName} × {item.quantity}</span>
-                                <span className="text-white/30">₹{(item.price * item.quantity).toFixed(2)}</span>
+                              <span className="text-white/30">₹{(item.price * item.quantity).toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="pt-4 border-t border-white/10">
+                      <div className="flex items-center gap-3 pt-4 border-t border-white/10">
                         <InvoiceButton order={order} variant="customer" />
+                        {canCancel && (
+                          <button
+                            onClick={() => handleCancel(order.id)}
+                            disabled={cancelling === order.id}
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-red-500/20 text-xs text-red-400/70 hover:text-red-400 hover:border-red-500/40 transition-colors min-h-[40px] disabled:opacity-50"
+                          >
+                            {cancelling === order.id ? 'Cancelling...' : 'Cancel Order'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

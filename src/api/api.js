@@ -10,6 +10,12 @@ export const authApi = {
   me: () => apiClient.get('/auth/me').then((r) => r.data),
 
   listUsers: () => apiClient.get('/auth/users').then((r) => r.data),
+
+  updateProfile: (data) =>
+    apiClient.put('/auth/me', data).then((r) => r.data),
+
+  changePassword: (data) =>
+    apiClient.put('/auth/me/password', data).then((r) => r.data),
 }
 
 export const productApi = {
@@ -55,6 +61,9 @@ export const orderApi = {
 
   updateStatus: (id, status) =>
     apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),
+
+  cancel: (id) =>
+    apiClient.post(`/order/${id}/cancel`).then((r) => r.data),
 }
 
 export const paymentApi = {

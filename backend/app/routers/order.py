@@ -210,10 +210,54 @@ async def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
+    was_not_cancelled = order.status != "cancelled"
     order.status = status
     session.add(order)
+
+    if status == "cancelled" and was_not_cancelled:
+        for item in order.items:
+            result = await session.execute(select(Product).where(Product.id == item.product_id))
+            product = result.scalar_one_or_none()
+            if product:
+                product.stock += item.quantity
+                session.add(product)
+
     await session.commit()
     return {"detail": "Order status updated"}
+
+
+@router.post("/{order_id}/cancel", response_model=OrderResponse)
+async def cancel_order(
+    order_id: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    result = await session.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if not current_user.is_admin and order.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    if order.status not in ("pending", "processing"):
+        raise HTTPException(status_code=400, detail="Only pending or processing orders can be cancelled")
+
+    order.status = "cancelled"
+    session.add(order)
+
+    for item in order.items:
+        result = await session.execute(select(Product).where(Product.id == item.product_id))
+        product = result.scalar_one_or_none()
+        if product:
+            product.stock += item.quantity
+            session.add(product)
+
+    await session.commit()
+    await session.refresh(order, ["items"])
+
+    user_result = await session.execute(select(User).where(User.id == order.user_id))
+    user = user_result.scalar_one_or_none()
+
+    return order_to_response(order, user)
 
 
 @router.post("/cod", response_model=OrderResponse)

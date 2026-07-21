@@ -125,6 +125,9 @@ export default function Navbar() {
                       <Link to="/orders" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
                         My Orders
                       </Link>
+                      <Link to="/profile" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
+                        Profile
+                      </Link>
                       <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors">
                         Sign Out
                       </button>
@@ -211,6 +214,7 @@ export default function Navbar() {
                     <Link to="/admin" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Admin Panel</Link>
                   )}
                   <Link to="/orders" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">My Orders</Link>
+                  <Link to="/profile" className="block py-3 text-sm text-white/60 hover:text-white transition-colors">Profile</Link>
                   <button onClick={handleLogout} className="block w-full text-left py-3 text-sm text-white/60 hover:text-white transition-colors">Sign Out</button>
                 </>
               ) : (

@@ -24,6 +24,7 @@ const Register = lazy(() => import('./pages/Register'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const OrderHistory = lazy(() => import('./pages/OrderHistory'))
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'))
+const Profile = lazy(() => import('./pages/Profile'))
 const StaticContent = lazy(() => import('./pages/StaticContent'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -99,6 +100,7 @@ export default function App() {
                       <Route path="/register" element={<Register />} />
                       <Route path="/wishlist" element={<Wishlist />} />
                       <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                       <Route path="/about" element={<StaticContent />} />
                       <Route path="/shipping" element={<StaticContent />} />
                       <Route path="/returns" element={<StaticContent />} />

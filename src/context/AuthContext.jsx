@@ -63,11 +63,15 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('atelier-user')
   }, [])
 
+  const updateUser = useCallback((userData) => {
+    setCurrentUser((prev) => ({ ...prev, ...userData }))
+  }, [])
+
   const isLoggedIn = !!currentUser
   const isAdmin = currentUser?.is_admin || false
 
   return (
-    <AuthContext.Provider value={{ currentUser, token, isLoggedIn, isAdmin, login, register, logout }}>
+    <AuthContext.Provider value={{ currentUser, token, isLoggedIn, isAdmin, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

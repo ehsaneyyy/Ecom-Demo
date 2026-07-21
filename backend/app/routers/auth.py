@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, field_validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,3 +74,77 @@ async def list_users(
     result = await session.execute(select(User).order_by(User.created_at.desc()))
     users = result.scalars().all()
     return [UserResponse(id=u.id, name=u.name, email=u.email, phone=u.phone, is_admin=u.is_admin) for u in users]
+
+
+class ProfileUpdate(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        if v is not None:
+            if len(v.strip()) < 2:
+                raise ValueError("Name must be at least 2 characters")
+            return v.strip()
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v):
+        if v is not None:
+            import re
+            digits = re.sub(r"\D", "", v)
+            if len(digits) < 10:
+                raise ValueError("Phone number must be at least 10 digits")
+            return v.strip()
+        return v
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password(cls, v):
+        import re
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain an uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain a lowercase letter")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password must contain a digit")
+        return v
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_profile(
+    body: ProfileUpdate,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if body.name is not None:
+        current_user.name = body.name
+    if body.phone is not None:
+        current_user.phone = body.phone
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    return UserResponse(id=current_user.id, name=current_user.name, email=current_user.email, phone=current_user.phone, is_admin=current_user.is_admin)
+
+
+@router.put("/me/password")
+async def change_password(
+    body: PasswordChange,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    current_user.hashed_password = hash_password(body.new_password)
+    session.add(current_user)
+    await session.commit()
+    return {"detail": "Password updated"}
