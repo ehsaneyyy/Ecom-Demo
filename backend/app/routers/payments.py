@@ -43,6 +43,8 @@ async def create_order(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    if current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin accounts cannot place orders")
     if not settings.razorpay_key_id or not settings.razorpay_key_secret:
         raise HTTPException(status_code=503, detail="Razorpay not configured")
 

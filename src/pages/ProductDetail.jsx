@@ -27,7 +27,7 @@ export default function ProductDetail() {
   const { products, loading, fetchProducts } = useData()
   const { addItem } = useCart()
   const { toggleWishlist, isInWishlist } = useWishlist()
-  const { currentUser, isLoggedIn } = useAuth()
+  const { currentUser, isLoggedIn, isAdmin } = useAuth()
   const product = products.find((p) => p.id === id)
 
   useSEO({
@@ -248,24 +248,33 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={product.stock === 0 || !canAddToCart}
-                  className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {product.stock === 0 ? 'Sold Out' : added ? 'Added to Bag ✓' : 'Add to Bag'}
-                </button>
-                <button
-                  onClick={handleWishlist}
-                  className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50'}`}
-                  aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </button>
-              </div>
+              {isAdmin ? (
+                <div className="bg-[#141414] rounded-lg border border-white/10 p-5 text-center">
+                  <p className="text-xs text-white/30 mb-3">Admin accounts cannot place orders</p>
+                  <Link to="/admin/products" className="inline-flex items-center px-5 py-2.5 bg-white text-black text-xs tracking-[0.1em] uppercase hover:bg-white/90 transition-colors">
+                    Manage in Admin Panel
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={product.stock === 0 || !canAddToCart}
+                    className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {product.stock === 0 ? 'Sold Out' : added ? 'Added to Bag ✓' : 'Add to Bag'}
+                  </button>
+                  <button
+                    onClick={handleWishlist}
+                    className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50'}`}
+                    aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
 
               {!canAddToCart && needsVariantSelection && (
                 <p className="text-xs text-[#c85a3e]/70">

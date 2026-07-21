@@ -102,6 +102,8 @@ async def create_order(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    if current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin accounts cannot place orders")
     if not body.items:
         raise HTTPException(status_code=400, detail="Order must have at least one item")
     if body.payment_method not in ("razorpay", "cod"):
@@ -220,6 +222,8 @@ async def create_cod_order(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    if current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin accounts cannot place orders")
     if not body.items:
         raise HTTPException(status_code=400, detail="Order must have at least one item")
 

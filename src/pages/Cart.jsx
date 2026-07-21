@@ -17,7 +17,7 @@ function calcGST(subtotal) {
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, total, count } = useCart()
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, isAdmin } = useAuth()
   const [removingId, setRemovingId] = useState(null)
   const gst = calcGST(total)
 
@@ -127,7 +127,14 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
-              {isLoggedIn ? (
+              {isAdmin ? (
+                <div className="text-center py-2">
+                  <p className="text-[0.6rem] text-white/30 mb-3">Admin accounts cannot place orders</p>
+                  <Link to="/admin" className="inline-flex items-center px-5 py-2.5 bg-white text-black text-xs tracking-[0.1em] uppercase hover:bg-white/90 transition-colors">
+                    Go to Admin Panel
+                  </Link>
+                </div>
+              ) : isLoggedIn ? (
                 <Link
                   to="/checkout"
                   className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
@@ -142,7 +149,7 @@ export default function Cart() {
                   Sign in to Checkout
                 </Link>
               )}
-              {!isLoggedIn && <p className="text-center text-[0.6rem] text-white/30 mt-3">Sign in or create an account to complete your order</p>}
+              {!isLoggedIn && !isAdmin && <p className="text-center text-[0.6rem] text-white/30 mt-3">Sign in or create an account to complete your order</p>}
               <Link to="/category/all" className="block text-center text-xs text-white/30 hover:text-white/30 transition-colors mt-4">
                 Continue Shopping
               </Link>
