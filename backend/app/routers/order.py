@@ -23,9 +23,50 @@ class OrderItemInput(BaseModel):
 class OrderCreateWithItems(BaseModel):
     shipping_address: str
     items: list[OrderItemInput]
+    payment_method: str = "razorpay"
+
+
+STORE_STATE = "Kerala"
+GST_RATE = 0.18
+SHIPPING_COST = 500
+FREE_SHIPPING_THRESHOLD = 10000
+
+
+def _calc_gst(subtotal: float, shipping_state: str):
+    shipping_cost = 0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_COST
+    taxable = subtotal + shipping_cost
+    tax = round(taxable * GST_RATE, 2)
+    if shipping_state.strip().lower() == STORE_STATE.lower():
+        cgst = round(tax / 2, 2)
+        sgst = round(tax / 2, 2)
+        igst = 0.0
+    else:
+        cgst = 0.0
+        sgst = 0.0
+        igst = tax
+    return {
+        "subtotal": subtotal,
+        "shipping_cost": shipping_cost,
+        "cgst": cgst,
+        "sgst": sgst,
+        "igst": igst,
+        "grand_total": round(subtotal + shipping_cost + tax, 2),
+    }
+
+
+def _extract_shipping_state(shipping_address: str) -> str:
+    parts = [p.strip() for p in shipping_address.split(",")]
+    if len(parts) >= 3:
+        state_part = parts[-2]
+        tokens = state_part.split()
+        if tokens:
+            return tokens[0]
+    return ""
 
 
 def order_to_response(order: Order, user: User | None = None) -> OrderResponse:
+    shipping_state = _extract_shipping_state(order.shipping_address)
+    gst = _calc_gst(order.total, shipping_state)
     return OrderResponse(
         id=order.id,
         user_id=order.user_id,
@@ -34,7 +75,14 @@ def order_to_response(order: Order, user: User | None = None) -> OrderResponse:
         total=order.total,
         status=order.status,
         shipping_address=order.shipping_address,
+        payment_method=order.payment_method,
         payment_session_id=order.payment_session_id,
+        subtotal=gst["subtotal"],
+        cgst=gst["cgst"],
+        sgst=gst["sgst"],
+        igst=gst["igst"],
+        shipping_cost=gst["shipping_cost"],
+        grand_total=gst["grand_total"],
         created_at=str(order.created_at),
         items=[
             OrderItemResponse(
@@ -56,12 +104,15 @@ async def create_order(
 ):
     if not body.items:
         raise HTTPException(status_code=400, detail="Order must have at least one item")
+    if body.payment_method not in ("razorpay", "cod"):
+        raise HTTPException(status_code=400, detail="Invalid payment method")
 
     order = Order(
         user_id=current_user.id,
         total=0,
         status="pending",
         shipping_address=body.shipping_address,
+        payment_method=body.payment_method,
     )
     session.add(order)
     await session.flush()
@@ -161,3 +212,54 @@ async def update_order_status(
     session.add(order)
     await session.commit()
     return {"detail": "Order status updated"}
+
+
+@router.post("/cod", response_model=OrderResponse)
+async def create_cod_order(
+    body: OrderCreateWithItems,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if not body.items:
+        raise HTTPException(status_code=400, detail="Order must have at least one item")
+
+    order = Order(
+        user_id=current_user.id,
+        total=0,
+        status="pending",
+        shipping_address=body.shipping_address,
+        payment_method="cod",
+    )
+    session.add(order)
+    await session.flush()
+
+    total = 0
+    for item_input in body.items:
+        result = await session.execute(select(Product).where(Product.id == item_input.product_id))
+        product = result.scalar_one_or_none()
+        if not product:
+            raise HTTPException(status_code=404, detail=f"Product {item_input.product_id} not found")
+
+        if product.stock < item_input.quantity:
+            raise HTTPException(status_code=400, detail=f"Insufficient stock for {product.name}")
+
+        product.stock -= item_input.quantity
+        session.add(product)
+
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=product.id,
+            product_name=product.name,
+            price=product.price,
+            quantity=item_input.quantity,
+        )
+        session.add(order_item)
+        total += product.price * item_input.quantity
+
+    order.total = total
+    session.add(order)
+    await session.commit()
+    await session.refresh(order, ["items"])
+
+    logger.info(f"COD Order {order.id} created, total: {total}")
+    return order_to_response(order, current_user)

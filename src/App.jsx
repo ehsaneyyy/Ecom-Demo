@@ -28,6 +28,7 @@ const StaticContent = lazy(() => import('./pages/StaticContent'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
+const AdminChooser = lazy(() => import('./pages/AdminChooser'))
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./admin/AdminProducts'))
 const AdminCategories = lazy(() => import('./admin/AdminCategories'))
@@ -109,7 +110,9 @@ export default function App() {
                       <Route path="/press" element={<ComingSoon title="Press" description="Press kit coming soon." />} />
                       <Route path="/contact" element={<ComingSoon title="Contact" description="Email us at hello@atelier.com." />} />
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                        <Route index element={<AdminDashboard />} />
+                        <Route path="choose" element={<AdminChooser />} />
+                        <Route index element={<AdminChooser />} />
+                        <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="categories" element={<AdminCategories />} />
                         <Route path="orders" element={<AdminOrders />} />

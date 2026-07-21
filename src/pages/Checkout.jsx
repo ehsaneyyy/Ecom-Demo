@@ -3,9 +3,25 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
-import { paymentApi } from '../api/api'
+import { paymentApi, orderApi } from '../api/api'
 import { emailRegex } from '../utils/validate'
 import Reveal from '../components/Reveal'
+
+const STORE_STATE = 'Kerala'
+const GST_RATE = 0.18
+const SHIPPING_COST = 500
+const FREE_SHIPPING_THRESHOLD = 10000
+
+function calcGST(subtotal, shippingState) {
+  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const taxable = subtotal + shippingCost
+  const tax = parseFloat((taxable * GST_RATE).toFixed(2))
+  const isSameState = (shippingState || '').trim().toLowerCase() === STORE_STATE.toLowerCase()
+  const cgst = isSameState ? parseFloat((tax / 2).toFixed(2)) : 0
+  const sgst = isSameState ? parseFloat((tax / 2).toFixed(2)) : 0
+  const igst = isSameState ? 0 : tax
+  return { shippingCost, tax, cgst, sgst, igst, grandTotal: parseFloat((subtotal + shippingCost + tax).toFixed(2)) }
+}
 
 export default function Checkout() {
   const { items, total, count, clearCart } = useCart()
@@ -17,11 +33,13 @@ export default function Checkout() {
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState(null)
   const [isPlacing, setIsPlacing] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('razorpay')
 
   const [shipping, setShipping] = useState({
     firstName: currentUser?.name?.split(' ')[0] || '',
     lastName: currentUser?.name?.split(' ').slice(1).join(' ') || '',
     email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
     address: '',
     city: '',
     state: '',
@@ -45,6 +63,8 @@ export default function Checkout() {
   })
   const [editingAddress, setEditingAddress] = useState(null)
 
+  const gst = calcGST(total, shipping.state)
+
   useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
       const def = addresses.find((a) => a.is_default) || addresses[0]
@@ -59,6 +79,7 @@ export default function Checkout() {
       firstName: parts[0] || '',
       lastName: parts.slice(1).join(' ') || '',
       email: currentUser?.email || '',
+      phone: addr.phone || currentUser?.phone || '',
       address: addr.address_line1 + (addr.address_line2 ? `, ${addr.address_line2}` : ''),
       city: addr.city,
       state: addr.state,
@@ -96,6 +117,7 @@ export default function Checkout() {
     setAddressForm({
       label: addr.label,
       full_name: addr.full_name,
+      phone: addr.phone || '',
       address_line1: addr.address_line1,
       address_line2: addr.address_line2 || '',
       city: addr.city,
@@ -132,10 +154,6 @@ export default function Checkout() {
     setEditingAddress(null)
   }
 
-  const shippingCost = total >= 10000 ? 0 : 500
-  const tax = total * 0.08
-  const grandTotal = total + shippingCost + tax
-
   if (items.length === 0) {
     return (
       <Reveal>
@@ -155,6 +173,7 @@ export default function Checkout() {
     if (!shipping.lastName.trim()) errs.lastName = 'Required'
     if (!shipping.email.trim()) errs.email = 'Required'
     else if (!emailRegex.test(shipping.email)) errs.email = 'Invalid email'
+    if (!shipping.phone.trim()) errs.phone = 'Required'
     if (!shipping.address.trim()) errs.address = 'Required'
     if (!shipping.city.trim()) errs.city = 'Required'
     if (!shipping.state.trim()) errs.state = 'Required'
@@ -186,18 +205,30 @@ export default function Checkout() {
     setIsPlacing(true)
     setServerError(null)
 
+    const address = `${shipping.firstName} ${shipping.lastName}, ${shipping.address}, ${shipping.city}, ${shipping.state} ${shipping.zip}`
+    const orderItems = items.map((item) => ({
+      product_id: String(item.id),
+      quantity: item.quantity,
+    }))
+
+    if (paymentMethod === 'cod') {
+      try {
+        const result = await orderApi.createCod(address, orderItems)
+        clearCart()
+        navigate(`/order-success?order_id=${result.id}&payment_method=cod`)
+      } catch (err) {
+        setServerError(err.response?.data?.detail || 'Failed to place order. Please try again.')
+        setIsPlacing(false)
+      }
+      return
+    }
+
     const loaded = await loadRazorpayScript()
     if (!loaded) {
       setServerError('Failed to load payment gateway. Please try again.')
       setIsPlacing(false)
       return
     }
-
-    const address = `${shipping.firstName} ${shipping.lastName}, ${shipping.address}, ${shipping.city}, ${shipping.state} ${shipping.zip}`
-    const orderItems = items.map((item) => ({
-      product_id: String(item.id),
-      quantity: item.quantity,
-    }))
 
     try {
       const { order_id, amount, currency, key_id } = await paymentApi.createOrder(address, orderItems)
@@ -228,6 +259,7 @@ export default function Checkout() {
         prefill: {
           name: `${shipping.firstName} ${shipping.lastName}`,
           email: shipping.email,
+          contact: shipping.phone,
         },
         theme: { color: '#0a0a0a' },
         modal: { ondismiss: () => { setIsPlacing(false) } },
@@ -249,7 +281,7 @@ export default function Checkout() {
 
       <Reveal delay={60}>
         <div className="flex items-center gap-2 sm:gap-3 mb-10 sm:mb-12 overflow-x-auto pb-2">
-          {['Shipping', 'Review'].map((label, i) => (
+          {['Shipping', 'Review & Pay'].map((label, i) => (
             <div key={label} className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[0.6rem] ${step > i + 1 ? 'bg-white text-black' : step === i + 1 ? 'bg-[#141414] text-white/70 border border-white/20' : 'bg-[#141414] text-white/30 border border-white/10'}`}>
                 {step > i + 1 ? '✓' : i + 1}
@@ -290,6 +322,7 @@ export default function Checkout() {
                                 {addr.is_default && <span className="text-[0.5rem] text-[#4ade80]/60 bg-[#4ade80]/10 px-1.5 py-0.5 rounded">Default</span>}
                               </div>
                               <p className="text-[0.6rem] text-white/30">{addr.full_name}</p>
+                              {addr.phone && <p className="text-[0.6rem] text-white/30">{addr.phone}</p>}
                               <p className="text-[0.6rem] text-white/30">{addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ''}</p>
                               <p className="text-[0.6rem] text-white/30">{addr.city}, {addr.state} {addr.zip_code}</p>
                             </div>
@@ -384,10 +417,17 @@ export default function Checkout() {
                       {errors.lastName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.lastName}</p>}
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
-                    <input type="email" value={shipping.email} onChange={(e) => setShipping({ ...shipping, email: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
+                      <input type="email" value={shipping.email} onChange={(e) => setShipping({ ...shipping, email: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone</label>
+                      <input type="tel" value={shipping.phone} onChange={(e) => setShipping({ ...shipping, phone: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.phone ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.phone && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.phone}</p>}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-[0.6rem] text-white/30 mb-1.5">Address</label>
@@ -424,27 +464,55 @@ export default function Checkout() {
           {step === 2 && (
             <Reveal>
               <div className="space-y-6">
-                <h2 className="text-lg font-medium text-white/50 mb-6">Review Order</h2>
+                <h2 className="text-lg font-medium text-white/50 mb-6">Review & Payment</h2>
                 <div className="bg-[#141414] p-5 sm:p-6 rounded-lg space-y-4">
                   <div>
                     <p className="text-[0.6rem] text-white/30 mb-1">Shipping to</p>
                     <p className="text-sm text-white/50">{shipping.firstName} {shipping.lastName}</p>
-                    <p className="text-xs text-white/30">{shipping.address}, {shipping.city}, {shipping.state} {shipping.zip}</p>
-                  </div>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-[0.6rem] text-white/30 mb-1">Payment</p>
-                    <p className="text-sm text-white/50">Razorpay secure checkout</p>
-                  </div>
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="text-[0.6rem] text-white/30 mb-3">Items</p>
-                    {items.map((item) => (
-                      <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="flex justify-between text-sm py-2">
-                        <span className="text-white/50">{item.name} × {item.quantity}</span>
-                        <span className="text-white/30">₹{(item.price * item.quantity).toFixed(2)}</span>
-                      </div>
-                    ))}
+                    <p className="text-xs text-white/30">{shipping.phone} · {shipping.address}, {shipping.city}, {shipping.state} {shipping.zip}</p>
                   </div>
                 </div>
+
+                <div className="bg-[#141414] p-5 sm:p-6 rounded-lg space-y-4">
+                  <p className="text-[0.6rem] text-white/30 mb-3">Payment Method</p>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setPaymentMethod('razorpay')}
+                      className={`w-full p-4 rounded-lg border text-left transition-colors flex items-center gap-3 ${paymentMethod === 'razorpay' ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'razorpay' ? 'border-white/50' : 'border-white/20'}`}>
+                        {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-white/50" />}
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/50">Razorpay</p>
+                        <p className="text-[0.6rem] text-white/30">UPI, Cards, Netbanking</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('cod')}
+                      className={`w-full p-4 rounded-lg border text-left transition-colors flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cod' ? 'border-white/50' : 'border-white/20'}`}>
+                        {paymentMethod === 'cod' && <div className="w-2 h-2 rounded-full bg-white/50" />}
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/50">Cash on Delivery</p>
+                        <p className="text-[0.6rem] text-white/30">Pay when your order arrives</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-[#141414] p-5 sm:p-6 rounded-lg">
+                  <p className="text-[0.6rem] text-white/30 mb-3">Items</p>
+                  {items.map((item) => (
+                    <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="flex justify-between text-sm py-2">
+                      <span className="text-white/50">{item.name} × {item.quantity}</span>
+                      <span className="text-white/30">₹{(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+
                 {serverError && <p className="text-xs text-red-400/70" role="alert">{serverError}</p>}
                 <div className="flex justify-between pt-4">
                   <button onClick={() => setStep(1)} className="px-6 py-3.5 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[48px]">
@@ -455,7 +523,7 @@ export default function Checkout() {
                     disabled={isPlacing}
                     className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-50"
                   >
-                    {isPlacing ? 'Processing...' : 'Pay with Razorpay'}
+                    {isPlacing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay with Razorpay'}
                   </button>
                 </div>
               </div>
@@ -488,16 +556,29 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-white/30">Shipping</span>
-                  <span className="text-white/50">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
+                  <span className="text-white/50">{gst.shippingCost === 0 ? 'Free' : `₹${gst.shippingCost.toFixed(2)}`}</span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-white/30">Tax</span>
-                  <span className="text-white/50">₹{tax.toFixed(2)}</span>
-                </div>
+                {gst.igst > 0 ? (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-white/30">IGST (18%)</span>
+                    <span className="text-white/50">₹{gst.igst.toFixed(2)}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/30">CGST (9%)</span>
+                      <span className="text-white/50">₹{gst.cgst.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/30">SGST (9%)</span>
+                      <span className="text-white/50">₹{gst.sgst.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="border-t border-white/10 pt-3 mt-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-white/70">Total</span>
-                    <span className="text-base font-medium text-white/70">₹{grandTotal.toFixed(2)}</span>
+                    <span className="text-base font-medium text-white/70">₹{gst.grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

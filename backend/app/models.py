@@ -59,6 +59,7 @@ class Order(SQLModel, table=True):
     total: float
     status: str = Field(default="pending")
     shipping_address: str
+    payment_method: str = Field(default="razorpay")
     payment_session_id: str | None = None
     created_at: date = Field(default_factory=date.today)
 

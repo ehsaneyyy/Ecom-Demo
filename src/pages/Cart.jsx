@@ -4,10 +4,22 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import Reveal from '../components/Reveal'
 
+const GST_RATE = 0.18
+const SHIPPING_COST = 500
+const FREE_SHIPPING_THRESHOLD = 10000
+
+function calcGST(subtotal) {
+  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const taxable = subtotal + shippingCost
+  const tax = parseFloat((taxable * GST_RATE).toFixed(2))
+  return { shippingCost, igst: tax, grandTotal: parseFloat((subtotal + shippingCost + tax).toFixed(2)) }
+}
+
 export default function Cart() {
   const { items, updateQuantity, removeItem, total, count } = useCart()
   const { isLoggedIn } = useAuth()
   const [removingId, setRemovingId] = useState(null)
+  const gst = calcGST(total)
 
   if (items.length === 0) {
     return (
@@ -102,16 +114,16 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Shipping</span>
-                  <span className="text-white/50">{total >= 10000 ? 'Free' : '₹500.00'}</span>
+                  <span className="text-white/50">{gst.shippingCost === 0 ? 'Free' : `₹${gst.shippingCost.toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/30">Tax (8%)</span>
-                  <span className="text-white/50">₹{(total * 0.08).toFixed(2)}</span>
+                  <span className="text-white/30">IGST (18%)</span>
+                  <span className="text-white/50">₹{gst.igst.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-4 mt-4">
                   <div className="flex justify-between">
                     <span className="text-sm text-white/70">Total</span>
-                    <span className="text-base font-medium text-white/70">₹{(total + (total >= 10000 ? 0 : 500) + total * 0.08).toFixed(2)}</span>
+                    <span className="text-base font-medium text-white/70">₹{gst.grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

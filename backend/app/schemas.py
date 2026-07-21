@@ -7,7 +7,7 @@ class UserRegister(BaseModel):
     name: str
     email: str
     password: str
-    phone: str | None = None
+    phone: str
     admin_key: str | None = None
 
     @field_validator("name")
@@ -41,6 +41,16 @@ class UserRegister(BaseModel):
         if not re.search(r"[0-9]", v):
             raise ValueError("Password must contain a digit")
         return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v):
+        digits = re.sub(r"\D", "", v)
+        if len(digits) < 10:
+            raise ValueError("Phone number must be at least 10 digits")
+        if len(digits) > 15:
+            raise ValueError("Phone number is too long")
+        return v.strip()
 
 
 class UserLogin(BaseModel):
@@ -158,7 +168,14 @@ class OrderResponse(BaseModel):
     total: float
     status: str
     shipping_address: str
+    payment_method: str = "razorpay"
     payment_session_id: str | None = None
+    subtotal: float = 0
+    cgst: float = 0
+    sgst: float = 0
+    igst: float = 0
+    shipping_cost: float = 0
+    grand_total: float = 0
     created_at: str
     items: list["OrderItemResponse"] = []
 

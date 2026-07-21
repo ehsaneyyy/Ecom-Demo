@@ -19,6 +19,8 @@ export default function Register() {
     if (!form.lastName.trim()) errs.lastName = 'Last name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!emailRegex.test(form.email)) errs.email = 'Invalid email'
+    if (!form.phone.trim()) errs.phone = 'Phone number is required'
+    else if (form.phone.replace(/\D/g, '').length < 10) errs.phone = 'Enter a valid phone number'
     if (!form.password) errs.password = 'Password is required'
     else if (form.password.length < 8) errs.password = 'At least 8 characters'
     else if (!/[A-Z]/.test(form.password)) errs.password = 'Need an uppercase letter'
@@ -94,15 +96,16 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone Number <span className="text-white/20">(optional)</span></label>
+              <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone Number</label>
               <input
                 type="tel"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => { setForm({ ...form, phone: e.target.value }); setErrors({ ...errors, phone: '' }) }}
                 placeholder="98765 43210"
-                className="w-full px-4 py-3 bg-[#141414] border border-white/10 text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
+                className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors ${errors.phone ? 'border-red-500/50' : 'border-white/10'}`}
                 autoComplete="tel"
               />
+              {errors.phone && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.phone}</p>}
             </div>
 
             <div>

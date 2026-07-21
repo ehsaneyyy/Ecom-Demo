@@ -50,6 +50,9 @@ export const orderApi = {
   create: (shippingAddress, items) =>
     apiClient.post('/order', { shipping_address: shippingAddress, items }).then((r) => r.data),
 
+  createCod: (shippingAddress, items) =>
+    apiClient.post('/order/cod', { shipping_address: shippingAddress, items }).then((r) => r.data),
+
   updateStatus: (id, status) =>
     apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),
 }
