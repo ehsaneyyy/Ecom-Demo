@@ -4,6 +4,7 @@ import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import { statusColors } from '../constants/orderStatuses'
 import Reveal from '../components/Reveal'
+import InvoiceButton from '../components/InvoiceButton'
 
 export default function OrderHistory() {
   const { orders } = useData()
@@ -74,7 +75,7 @@ export default function OrderHistory() {
                         <p className="text-[0.6rem] text-white/30 mb-1">Shipping Address</p>
                         <p className="text-xs text-white/50">{order.shippingAddress}</p>
                       </div>
-                      <div>
+                       <div>
                         <p className="text-[0.6rem] text-white/30 mb-2">Items</p>
                         <div className="space-y-2">
                           {order.items.map((item, i) => (
@@ -84,6 +85,9 @@ export default function OrderHistory() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                      <div className="pt-4 border-t border-white/10">
+                        <InvoiceButton order={order} variant="customer" />
                       </div>
                     </div>
                   )}

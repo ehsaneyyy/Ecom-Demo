@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useToast } from '../components/Toast'
 import { statusColors } from '../constants/orderStatuses'
+import InvoiceButton from '../components/InvoiceButton'
 
 const statusMessages = {
   processing: (name, id) => `Hi ${name}! Your order #${id.slice(0, 8)} is being processed. We'll update you when it ships.`,
@@ -157,7 +158,7 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </div>
-                  <div>
+                   <div>
                     <p className="text-[0.6rem] text-white/30 mb-2">Items</p>
                     <div className="space-y-2">
                       {order.items.map((item, i) => (
@@ -167,6 +168,9 @@ export default function AdminOrders() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                  <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                    <InvoiceButton order={order} variant="admin" />
                   </div>
                 </div>
               )}
