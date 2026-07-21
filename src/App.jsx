@@ -109,9 +109,9 @@ export default function App() {
                       <Route path="/sustainability" element={<ComingSoon title="Sustainability" description="Full sustainability report coming soon." />} />
                       <Route path="/press" element={<ComingSoon title="Press" description="Press kit coming soon." />} />
                       <Route path="/contact" element={<ComingSoon title="Contact" description="Email us at hello@atelier.com." />} />
+                      <Route path="/choose" element={<AdminRoute><AdminChooser /></AdminRoute>} />
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                        <Route path="choose" element={<AdminChooser />} />
-                        <Route index element={<AdminChooser />} />
+                        <Route index element={<AdminDashboard />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="categories" element={<AdminCategories />} />
