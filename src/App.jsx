@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CartProvider } from './context/CartContext'
-import { WishlistProvider } from './context/WishlistContext'
 import { AuthProvider } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
 import Navbar from './components/Navbar'
@@ -21,7 +20,6 @@ const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
-const Wishlist = lazy(() => import('./pages/Wishlist'))
 const OrderHistory = lazy(() => import('./pages/OrderHistory'))
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
@@ -83,7 +81,6 @@ export default function App() {
         <AuthProvider>
           <DataProvider>
             <CartProvider>
-              <WishlistProvider>
                 <Layout>
                   <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:text-xs">
                     Skip to content
@@ -100,7 +97,6 @@ export default function App() {
                       <Route path="/order/:id/track" element={<AdminBlock><OrderTracking /></AdminBlock>} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
-                      <Route path="/wishlist" element={<AdminBlock><Wishlist /></AdminBlock>} />
                       <Route path="/orders" element={<AdminBlock><OrderHistory /></AdminBlock>} />
                       <Route path="/profile" element={<AdminBlock><Profile /></AdminBlock>} />
                       <Route path="/about" element={<AdminBlock><StaticContent /></AdminBlock>} />
@@ -127,7 +123,6 @@ export default function App() {
                   </Suspense>
                   </ErrorBoundary>
                 </Layout>
-              </WishlistProvider>
             </CartProvider>
           </DataProvider>
         </AuthProvider>

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { useCart } from '../context/CartContext'
-import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import { productApi } from '../api/api'
 import { useSEO } from '../hooks/useSEO'
@@ -26,7 +25,6 @@ export default function ProductDetail() {
   const { id } = useParams()
   const { products, loading, fetchProducts } = useData()
   const { addItem } = useCart()
-  const { toggleWishlist, isInWishlist } = useWishlist()
   const { currentUser, isLoggedIn, isAdmin } = useAuth()
   const product = products.find((p) => p.id === id)
 
@@ -50,6 +48,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [expandedReview, setExpandedReview] = useState(null)
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
@@ -86,21 +85,15 @@ export default function ProductDetail() {
   const canAddToCart = !needsVariantSelection || (hasColors ? selectedColor : true) && (hasSizes ? selectedSize : true)
 
   const handleAddToCart = () => {
+    if (!isLoggedIn) {
+      setShowLoginPrompt(true)
+      return
+    }
     if (!canAddToCart) return
     addItem(product, quantity, selectedColor, selectedSize)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
-
-  const handleWishlist = () => {
-    if (!isLoggedIn) {
-      window.location.href = '/login'
-      return
-    }
-    toggleWishlist(product)
-  }
-
-  const wishlisted = isInWishlist(product.id)
 
   const handleSubmitReview = async (e) => {
     e.preventDefault()
@@ -256,24 +249,13 @@ export default function ProductDetail() {
                   </Link>
                 </div>
               ) : (
-                <div className="flex gap-3">
-                  <button
+                <button
                     onClick={handleAddToCart}
                     disabled={product.stock === 0 || !canAddToCart}
                     className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {product.stock === 0 ? 'Sold Out' : added ? 'Added to Bag ✓' : 'Add to Bag'}
                   </button>
-                  <button
-                    onClick={handleWishlist}
-                    className={`w-12 h-12 sm:w-14 sm:h-12 flex items-center justify-center border transition-colors ${wishlisted ? 'border-red-500/30 text-red-400' : 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50'}`}
-                    aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </button>
-                </div>
               )}
 
               {!canAddToCart && needsVariantSelection && (
@@ -488,6 +470,30 @@ export default function ProductDetail() {
           )
         })()}
       </div>
+
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setShowLoginPrompt(false)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div className="relative bg-[#141414] border border-white/10 rounded-lg p-8 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/50">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-medium text-white/70 mb-2">Sign in required</h3>
+            <p className="text-xs text-white/30 mb-6">Please sign in to add items to your bag and checkout.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowLoginPrompt(false)} className="flex-1 py-3 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors">
+                Cancel
+              </button>
+              <Link to="/login" onClick={() => setShowLoginPrompt(false)} className="flex-1 py-3 bg-white text-black text-xs tracking-[0.1em] uppercase text-center hover:bg-white/90 transition-colors">
+                Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

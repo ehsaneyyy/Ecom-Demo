@@ -200,20 +200,12 @@ export default function Cart() {
                       Proceed to Checkout
                     </Link>
                   ) : (
-                    <>
-                      <Link
-                        to="/checkout?guest=1"
-                        className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
-                      >
-                        Guest Checkout
-                      </Link>
-                      <Link
-                        to="/login"
-                        className="block w-full py-3.5 border border-white/10 text-xs text-white/30 tracking-[0.15em] uppercase text-center hover:text-white/50 hover:border-white/20 transition-colors"
-                      >
-                        Sign In
-                      </Link>
-                    </>
+                    <Link
+                      to="/login"
+                      className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
+                    >
+                      Sign In to Checkout
+                    </Link>
                   )}
                 </div>
               )}

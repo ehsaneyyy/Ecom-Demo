@@ -59,9 +59,6 @@ export const orderApi = {
   createCod: (shippingAddress, items, promoCode) =>
     apiClient.post('/order/cod', { shipping_address: shippingAddress, items, promo_code: promoCode || undefined }).then((r) => r.data),
 
-  createGuest: (email, name, phone, shippingAddress, items, promoCode) =>
-    apiClient.post('/order/guest', { email, name, phone, shipping_address: shippingAddress, items, promo_code: promoCode || undefined }).then((r) => r.data),
-
   updateStatus: (id, status) =>
     apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),
 

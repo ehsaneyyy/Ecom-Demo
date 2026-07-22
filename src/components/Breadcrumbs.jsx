@@ -46,8 +46,6 @@ function generateBreadcrumbs(pathname) {
   } else if (segments[0] === 'category' && segments[1]) {
     items.push({ label: 'Shop', href: '/' })
     items.push({ label: decodeURIComponent(segments[1]) })
-  } else if (segments[0] === 'wishlist') {
-    items.push({ label: 'Wishlist' })
   } else if (segments[0] === 'about') {
     items.push({ label: 'About' })
   } else if (segments[0] === 'shipping') {

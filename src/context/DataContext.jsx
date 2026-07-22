@@ -192,17 +192,6 @@ export function DataProvider({ children }) {
     }
   }, [])
 
-  const addGuestOrder = useCallback(async (email, name, phone, shippingAddress, items, promoCode) => {
-    try {
-      const newOrder = await orderApi.createGuest(email, name, phone, shippingAddress, items, promoCode)
-      setOrders((prev) => [transformOrder(newOrder), ...prev])
-      return newOrder
-    } catch (err) {
-      console.error('Failed to create guest order:', err)
-      throw err
-    }
-  }, [])
-
   const updateOrderStatus = useCallback(async (id, status) => {
     try {
       await orderApi.updateStatus(id, status)
@@ -216,7 +205,7 @@ export function DataProvider({ children }) {
   return (
     <DataContext.Provider value={{
       products, loading,
-      orders, addOrder, addGuestOrder, updateOrderStatus,
+      orders, addOrder, updateOrderStatus,
       customers, fetchCustomers,
       categories, addCategory, updateCategory, deleteCategory, fetchCategories,
       addresses, addAddress, updateAddress, deleteAddress, fetchAddresses,
