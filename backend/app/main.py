@@ -60,7 +60,19 @@ async def health_check():
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     from fastapi.responses import JSONResponse
+    origin = request.headers.get("origin", "")
+    allowed = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://ecom-demo-rho.vercel.app",
+        "https://ecom-demo-iota-brown.vercel.app",
+    ]
+    headers = {}
+    if origin in allowed:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
         content={"detail": "Server is starting up, please try again in a moment."},
+        headers=headers,
     )
