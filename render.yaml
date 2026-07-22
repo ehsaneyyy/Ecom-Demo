@@ -22,5 +22,9 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: STORE_EMAIL
+        value: "hello@atelier.com"
       - key: PYTHON_VERSION
         value: "3.12"
