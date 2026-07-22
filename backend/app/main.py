@@ -1,7 +1,8 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -11,6 +12,8 @@ from slowapi.util import get_remote_address
 from app.config import settings
 from app.database import create_db_and_tables
 from app.routers import auth, order, product, payments, category, address, promo
+
+logger = logging.getLogger(__name__)
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -60,6 +63,27 @@ async def health_check():
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     from fastapi.responses import JSONResponse
+
+    if isinstance(exc, HTTPException):
+        origin = request.headers.get("origin", "")
+        allowed = [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://ecom-demo-rho.vercel.app",
+            "https://ecom-demo-iota-brown.vercel.app",
+        ]
+        headers = {}
+        if origin in allowed:
+            headers["Access-Control-Allow-Origin"] = origin
+            headers["Access-Control-Allow-Credentials"] = "true"
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=headers,
+        )
+
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+
     origin = request.headers.get("origin", "")
     allowed = [
         "http://localhost:5173",
@@ -73,6 +97,6 @@ async def global_exception_handler(request, exc):
         headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
-        content={"detail": "Server is starting up, please try again in a moment."},
+        content={"detail": "Internal server error"},
         headers=headers,
     )
