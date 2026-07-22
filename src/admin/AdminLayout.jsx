@@ -1,4 +1,4 @@
-import { NavLink, Link, Outlet } from 'react-router-dom'
+import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
@@ -13,7 +13,14 @@ const nav = [
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { currentUser } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { currentUser, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <div className="flex h-screen bg-[#0a0a0a]">
@@ -93,11 +100,33 @@ export default function AdminLayout() {
             </svg>
           </button>
           <div className="flex-1" />
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
-              {currentUser?.name?.charAt(0) || 'A'}
-            </div>
-            <span className="text-xs text-white/30 hidden sm:block">{currentUser?.email || ''}</span>
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
+                {currentUser?.name?.charAt(0) || 'A'}
+              </div>
+              <span className="text-xs text-white/30 hidden sm:block">{currentUser?.email || ''}</span>
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[#141414] border border-white/10 rounded-lg shadow-xl z-50 py-2">
+                  <div className="px-4 py-2 border-b border-white/5">
+                    <p className="text-xs text-white/70 font-medium">{currentUser?.name}</p>
+                    <p className="text-[0.6rem] text-white/30">{currentUser?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2.5 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </header>
 
