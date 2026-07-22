@@ -249,13 +249,15 @@ export default function ProductDetail() {
                   </Link>
                 </div>
               ) : (
-                <button
+                <div className="flex gap-3">
+                  <button
                     onClick={handleAddToCart}
-                    disabled={product.stock === 0 || !canAddToCart}
+                    disabled={product.stock === 0}
                     className="flex-1 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {product.stock === 0 ? 'Sold Out' : added ? 'Added to Bag ✓' : 'Add to Bag'}
                   </button>
+                </div>
               )}
 
               {!canAddToCart && needsVariantSelection && (

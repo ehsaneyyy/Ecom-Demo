@@ -32,7 +32,7 @@ export default function Login() {
     if (result.locked) {
       setServerError('Account temporarily locked due to too many failed attempts. Try again later.')
     } else if (result.success) {
-      navigate(isAdmin ? '/choose' : '/')
+      navigate(isAdmin ? '/admin' : '/')
     } else {
       setServerError(result.error || 'Invalid email or password')
     }
