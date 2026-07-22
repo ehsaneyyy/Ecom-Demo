@@ -57,7 +57,21 @@ app.mount("/api/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok"}
+    from fastapi.responses import JSONResponse
+    from sqlalchemy import text
+    from app.database import async_session_factory
+    try:
+        async with async_session_factory() as session:
+            await session.execute(text('SELECT 1'))
+            result = await session.execute(text("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user')"))
+            user_table = result.scalar()
+            result2 = await session.execute(text("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'order')"))
+            order_table = result2.scalar()
+            result3 = await session.execute(text("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'address')"))
+            address_table = result3.scalar()
+        return {"status": "ok", "user_table": user_table, "order_table": order_table, "address_table": address_table}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "detail": str(e)})
 
 
 @app.exception_handler(Exception)
