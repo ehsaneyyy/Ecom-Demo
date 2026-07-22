@@ -9,6 +9,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Breadcrumbs from './components/Breadcrumbs'
 import AdminRoute from './components/AdminRoute'
+import AdminBlock from './components/AdminBlock'
 import { ToastContainer } from './components/Toast'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -29,7 +30,6 @@ const StaticContent = lazy(() => import('./pages/StaticContent'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
-const AdminChooser = lazy(() => import('./pages/AdminChooser'))
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./admin/AdminProducts'))
 const AdminCategories = lazy(() => import('./admin/AdminCategories'))
@@ -91,29 +91,28 @@ export default function App() {
                   <ErrorBoundary>
                     <Suspense fallback={<Loading />}>
                       <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/product/:id" element={<ProductDetail />} />
-                      <Route path="/category/:slug" element={<Category />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/order-success" element={<OrderSuccess />} />
-                      <Route path="/order/:id/track" element={<OrderTracking />} />
+                      <Route path="/" element={<AdminBlock><Home /></AdminBlock>} />
+                      <Route path="/product/:id" element={<AdminBlock><ProductDetail /></AdminBlock>} />
+                      <Route path="/category/:slug" element={<AdminBlock><Category /></AdminBlock>} />
+                      <Route path="/cart" element={<AdminBlock><Cart /></AdminBlock>} />
+                      <Route path="/checkout" element={<AdminBlock><Checkout /></AdminBlock>} />
+                      <Route path="/order-success" element={<AdminBlock><OrderSuccess /></AdminBlock>} />
+                      <Route path="/order/:id/track" element={<AdminBlock><OrderTracking /></AdminBlock>} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
-                      <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/orders" element={<OrderHistory />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/about" element={<StaticContent />} />
-                      <Route path="/shipping" element={<StaticContent />} />
-                      <Route path="/returns" element={<StaticContent />} />
-                      <Route path="/faq" element={<StaticContent />} />
-                      <Route path="/privacy" element={<StaticContent />} />
-                      <Route path="/terms" element={<StaticContent />} />
-                      <Route path="/gift-cards" element={<ComingSoon title="Gift Cards" description="Gift cards coming soon." />} />
-                      <Route path="/sustainability" element={<ComingSoon title="Sustainability" description="Full sustainability report coming soon." />} />
-                      <Route path="/press" element={<ComingSoon title="Press" description="Press kit coming soon." />} />
-                      <Route path="/contact" element={<ComingSoon title="Contact" description="Email us at hello@atelier.com." />} />
-                      <Route path="/choose" element={<AdminRoute><AdminChooser /></AdminRoute>} />
+                      <Route path="/wishlist" element={<AdminBlock><Wishlist /></AdminBlock>} />
+                      <Route path="/orders" element={<AdminBlock><OrderHistory /></AdminBlock>} />
+                      <Route path="/profile" element={<AdminBlock><Profile /></AdminBlock>} />
+                      <Route path="/about" element={<AdminBlock><StaticContent /></AdminBlock>} />
+                      <Route path="/shipping" element={<AdminBlock><StaticContent /></AdminBlock>} />
+                      <Route path="/returns" element={<AdminBlock><StaticContent /></AdminBlock>} />
+                      <Route path="/faq" element={<AdminBlock><StaticContent /></AdminBlock>} />
+                      <Route path="/privacy" element={<AdminBlock><StaticContent /></AdminBlock>} />
+                      <Route path="/terms" element={<AdminBlock><StaticContent /></AdminBlock>} />
+                      <Route path="/gift-cards" element={<AdminBlock><ComingSoon title="Gift Cards" description="Gift cards coming soon." /></AdminBlock>} />
+                      <Route path="/sustainability" element={<AdminBlock><ComingSoon title="Sustainability" description="Full sustainability report coming soon." /></AdminBlock>} />
+                      <Route path="/press" element={<AdminBlock><ComingSoon title="Press" description="Press kit coming soon." /></AdminBlock>} />
+                      <Route path="/contact" element={<AdminBlock><ComingSoon title="Contact" description="Email us at hello@atelier.com." /></AdminBlock>} />
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="dashboard" element={<AdminDashboard />} />

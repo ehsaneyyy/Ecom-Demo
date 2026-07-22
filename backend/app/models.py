@@ -61,6 +61,8 @@ class Order(SQLModel, table=True):
     shipping_address: str
     payment_method: str = Field(default="razorpay")
     payment_session_id: str | None = None
+    promo_code: str | None = None
+    discount_amount: float = Field(default=0)
     created_at: date = Field(default_factory=date.today)
 
     user: User | None = Relationship(back_populates="orders")
