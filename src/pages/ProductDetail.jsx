@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useParams } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { useCart } from '../context/CartContext'
@@ -473,7 +474,7 @@ export default function ProductDetail() {
         })()}
       </div>
 
-      {showLoginPrompt && (
+      {showLoginPrompt && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setShowLoginPrompt(false)}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
           <div className="relative bg-[#141414] border border-white/10 rounded-lg p-8 max-w-sm w-full text-center" onClick={(e) => e.stopPropagation()}>
@@ -494,7 +495,8 @@ export default function ProductDetail() {
               </Link>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
