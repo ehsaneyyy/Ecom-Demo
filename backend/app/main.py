@@ -82,7 +82,7 @@ async def global_exception_handler(request, exc):
             headers=headers,
         )
 
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
 
     origin = request.headers.get("origin", "")
     allowed = [
@@ -97,6 +97,6 @@ async def global_exception_handler(request, exc):
         headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error"},
+        content={"detail": str(exc)},
         headers=headers,
     )
