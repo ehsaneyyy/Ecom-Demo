@@ -113,3 +113,18 @@ class Address(SQLModel, table=True):
     is_default: bool = Field(default=False)
 
     user: User | None = Relationship(back_populates="addresses")
+
+
+class PromoCode(SQLModel, table=True):
+    __tablename__ = "promo_code"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    code: str = Field(unique=True, index=True)
+    discount_type: str
+    discount_value: float
+    min_order: float = Field(default=0)
+    max_uses: int | None = None
+    used_count: int = Field(default=0)
+    valid_from: date = Field(default_factory=date.today)
+    valid_until: date = Field(default_factory=date.today)
+    active: bool = Field(default=True)

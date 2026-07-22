@@ -8,6 +8,7 @@ const nav = [
   { to: '/admin/categories', label: 'Categories', icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z' },
   { to: '/admin/orders', label: 'Orders', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
   { to: '/admin/customers', label: 'Customers', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+  { to: '/admin/promos', label: 'Promos', icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z' },
 ]
 
 export default function AdminLayout() {
@@ -92,9 +93,6 @@ export default function AdminLayout() {
             </svg>
           </button>
           <div className="flex-1" />
-          <Link to="/" className="text-[0.6rem] text-white/30 hover:text-white/50 border border-white/10 hover:border-white/20 px-3 py-1.5 transition-colors">
-            Back to Store
-          </Link>
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[0.5rem] text-white/50">
               {currentUser?.name?.charAt(0) || 'A'}

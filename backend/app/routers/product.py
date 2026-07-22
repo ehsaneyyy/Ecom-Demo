@@ -63,6 +63,10 @@ async def list_products(
     category: str | None = None,
     search: str | None = None,
     sort: str = "featured",
+    min_price: float | None = None,
+    max_price: float | None = None,
+    color: str | None = None,
+    size: str | None = None,
     session: AsyncSession = Depends(get_session),
 ):
     query = select(Product)
@@ -70,18 +74,30 @@ async def list_products(
         query = query.where(col(Product.category).ilike(category))
     if search:
         query = query.where(col(Product.name).ilike(f"%{search}%"))
-
-    if sort == "price-low":
-        query = query.order_by(Product.price)
-    elif sort == "price-high":
-        query = query.order_by(Product.price.desc())
-    elif sort == "newest":
-        query = query.order_by(Product.id.desc())
-    else:
-        query = query.order_by(Product.id)
+    if min_price is not None:
+        query = query.where(Product.price >= min_price)
+    if max_price is not None:
+        query = query.where(Product.price <= max_price)
 
     result = await session.execute(query)
     products = result.scalars().all()
+
+    if color:
+        color_lower = color.lower()
+        products = [p for p in products if p.colors and color_lower in p.colors.lower()]
+
+    if size:
+        size_lower = size.lower()
+        products = [p for p in products if p.sizes and size_lower in p.sizes.lower()]
+
+    if sort == "price-low":
+        products.sort(key=lambda p: p.price)
+    elif sort == "price-high":
+        products.sort(key=lambda p: p.price, reverse=True)
+    elif sort == "newest":
+        products.sort(key=lambda p: p.id, reverse=True)
+    else:
+        products.sort(key=lambda p: p.id)
 
     review_query = sa_select(Review).options(selectinload(Review.user))
     review_result = await session.execute(review_query)

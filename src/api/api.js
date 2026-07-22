@@ -53,17 +53,26 @@ export const orderApi = {
   get: (id) =>
     apiClient.get(`/order/${id}`).then((r) => r.data),
 
-  create: (shippingAddress, items) =>
-    apiClient.post('/order', { shipping_address: shippingAddress, items }).then((r) => r.data),
+  create: (shippingAddress, items, promoCode) =>
+    apiClient.post('/order', { shipping_address: shippingAddress, items, promo_code: promoCode || undefined }).then((r) => r.data),
 
-  createCod: (shippingAddress, items) =>
-    apiClient.post('/order/cod', { shipping_address: shippingAddress, items }).then((r) => r.data),
+  createCod: (shippingAddress, items, promoCode) =>
+    apiClient.post('/order/cod', { shipping_address: shippingAddress, items, promo_code: promoCode || undefined }).then((r) => r.data),
+
+  createGuest: (email, name, phone, shippingAddress, items, promoCode) =>
+    apiClient.post('/order/guest', { email, name, phone, shipping_address: shippingAddress, items, promo_code: promoCode || undefined }).then((r) => r.data),
 
   updateStatus: (id, status) =>
     apiClient.patch(`/order/${id}/status?status=${status}`).then((r) => r.data),
 
   cancel: (id) =>
     apiClient.post(`/order/${id}/cancel`).then((r) => r.data),
+
+  sendEmail: (id) =>
+    apiClient.post(`/order/${id}/send-email`).then((r) => r.data),
+
+  track: (id, email) =>
+    apiClient.get(`/order/${id}/track`, { params: { email } }).then((r) => r.data),
 }
 
 export const paymentApi = {
@@ -86,4 +95,15 @@ export const addressApi = {
   create: (data) => apiClient.post('/address', data).then((r) => r.data),
   update: (id, data) => apiClient.put(`/address/${id}`, data).then((r) => r.data),
   delete: (id) => apiClient.delete(`/address/${id}`).then((r) => r.data),
+}
+
+export const promoApi = {
+  validate: (code, subtotal) =>
+    apiClient.post('/promo/validate', { code, subtotal }).then((r) => r.data),
+
+  list: () => apiClient.get('/promo').then((r) => r.data),
+
+  create: (data) => apiClient.post('/promo', data).then((r) => r.data),
+
+  delete: (id) => apiClient.delete(`/promo/${id}`).then((r) => r.data),
 }

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import { orderApi } from '../api/api'
 import { statusColors } from '../constants/orderStatuses'
+import StatusTimeline from '../components/StatusTimeline'
 import Reveal from '../components/Reveal'
 import InvoiceButton from '../components/InvoiceButton'
 
@@ -88,6 +89,9 @@ export default function OrderHistory() {
                   {isExpanded && (
                     <div className="border-t border-white/10 p-4 sm:p-6 space-y-4">
                       <div>
+                        <StatusTimeline status={order.status} />
+                      </div>
+                      <div>
                         <p className="text-[0.6rem] text-white/30 mb-1">Shipping Address</p>
                         <p className="text-xs text-white/50">{order.shippingAddress}</p>
                       </div>
@@ -102,8 +106,18 @@ export default function OrderHistory() {
                           ))}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+                      <div className="flex items-center gap-3 pt-4 border-t border-white/10 flex-wrap">
                         <InvoiceButton order={order} variant="customer" />
+                        <Link
+                          to={`/order/${order.id}/track`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-2 px-4 py-2 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[40px]"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                          </svg>
+                          Track
+                        </Link>
                         {canCancel && (
                           <button
                             onClick={() => handleCancel(order.id)}

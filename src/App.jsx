@@ -9,7 +9,6 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Breadcrumbs from './components/Breadcrumbs'
 import AdminRoute from './components/AdminRoute'
-import ProtectedRoute from './components/ProtectedRoute'
 import { ToastContainer } from './components/Toast'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -24,6 +23,7 @@ const Register = lazy(() => import('./pages/Register'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const OrderHistory = lazy(() => import('./pages/OrderHistory'))
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'))
+const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Profile = lazy(() => import('./pages/Profile'))
 const StaticContent = lazy(() => import('./pages/StaticContent'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
@@ -35,6 +35,7 @@ const AdminProducts = lazy(() => import('./admin/AdminProducts'))
 const AdminCategories = lazy(() => import('./admin/AdminCategories'))
 const AdminOrders = lazy(() => import('./admin/AdminOrders'))
 const AdminCustomers = lazy(() => import('./admin/AdminCustomers'))
+const AdminPromoCodes = lazy(() => import('./admin/AdminPromoCodes'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -94,13 +95,14 @@ export default function App() {
                       <Route path="/product/:id" element={<ProductDetail />} />
                       <Route path="/category/:slug" element={<Category />} />
                       <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-                      <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/order-success" element={<OrderSuccess />} />
+                      <Route path="/order/:id/track" element={<OrderTracking />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
-                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                      <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/profile" element={<Profile />} />
                       <Route path="/about" element={<StaticContent />} />
                       <Route path="/shipping" element={<StaticContent />} />
                       <Route path="/returns" element={<StaticContent />} />
@@ -119,6 +121,7 @@ export default function App() {
                         <Route path="categories" element={<AdminCategories />} />
                         <Route path="orders" element={<AdminOrders />} />
                         <Route path="customers" element={<AdminCustomers />} />
+                        <Route path="promos" element={<AdminPromoCodes />} />
                       </Route>
                       <Route path="*" element={<NotFound />} />
                     </Routes>

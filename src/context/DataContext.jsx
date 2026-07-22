@@ -23,7 +23,10 @@ function transformOrder(o) {
     createdAt: o.created_at,
     shippingAddress: o.shipping_address,
     userName: o.user_name,
+    userEmail: o.user_email,
     userPhone: o.user_phone,
+    promoCode: o.promo_code,
+    discountAmount: o.discount_amount,
     items: (o.items || []).map((i) => ({
       ...i,
       productName: i.product_name,
@@ -178,13 +181,24 @@ export function DataProvider({ children }) {
     }
   }, [])
 
-  const addOrder = useCallback(async (shippingAddress, items) => {
+  const addOrder = useCallback(async (shippingAddress, items, promoCode) => {
     try {
-      const newOrder = await orderApi.create(shippingAddress, items)
+      const newOrder = await orderApi.create(shippingAddress, items, promoCode)
       setOrders((prev) => [transformOrder(newOrder), ...prev])
       return newOrder
     } catch (err) {
       console.error('Failed to create order:', err)
+      throw err
+    }
+  }, [])
+
+  const addGuestOrder = useCallback(async (email, name, phone, shippingAddress, items, promoCode) => {
+    try {
+      const newOrder = await orderApi.createGuest(email, name, phone, shippingAddress, items, promoCode)
+      setOrders((prev) => [transformOrder(newOrder), ...prev])
+      return newOrder
+    } catch (err) {
+      console.error('Failed to create guest order:', err)
       throw err
     }
   }, [])
@@ -202,7 +216,7 @@ export function DataProvider({ children }) {
   return (
     <DataContext.Provider value={{
       products, loading,
-      orders, addOrder, updateOrderStatus,
+      orders, addOrder, addGuestOrder, updateOrderStatus,
       customers, fetchCustomers,
       categories, addCategory, updateCategory, deleteCategory, fetchCategories,
       addresses, addAddress, updateAddress, deleteAddress, fetchAddresses,

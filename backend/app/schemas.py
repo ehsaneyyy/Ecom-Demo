@@ -1,4 +1,5 @@
 import re
+from datetime import date
 
 from pydantic import BaseModel, field_validator
 
@@ -164,12 +165,15 @@ class OrderResponse(BaseModel):
     id: str
     user_id: str
     user_name: str | None = None
+    user_email: str | None = None
     user_phone: str | None = None
     total: float
     status: str
     shipping_address: str
     payment_method: str = "razorpay"
     payment_session_id: str | None = None
+    promo_code: str | None = None
+    discount_amount: float = 0
     subtotal: float = 0
     cgst: float = 0
     sgst: float = 0
@@ -274,3 +278,82 @@ class AddressResponse(BaseModel):
     is_default: bool
 
     model_config = {"from_attributes": True}
+
+
+class PromoCodeCreate(BaseModel):
+    code: str
+    discount_type: str
+    discount_value: float
+    min_order: float = 0
+    max_uses: int | None = None
+    valid_from: date | None = None
+    valid_until: date | None = None
+
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v):
+        v = v.strip().upper()
+        if len(v) < 2:
+            raise ValueError("Code must be at least 2 characters")
+        if len(v) > 20:
+            raise ValueError("Code must be under 20 characters")
+        return v
+
+    @field_validator("discount_type")
+    @classmethod
+    def validate_discount_type(cls, v):
+        if v not in ("percentage", "fixed"):
+            raise ValueError("Discount type must be 'percentage' or 'fixed'")
+        return v
+
+    @field_validator("discount_value")
+    @classmethod
+    def validate_discount_value(cls, v):
+        if v <= 0:
+            raise ValueError("Discount value must be positive")
+        return v
+
+
+class PromoCodeResponse(BaseModel):
+    id: str
+    code: str
+    discount_type: str
+    discount_value: float
+    min_order: float
+    max_uses: int | None = None
+    used_count: int
+    valid_from: str
+    valid_until: str
+    active: bool
+
+    model_config = {"from_attributes": True}
+
+
+class PromoCodeValidateRequest(BaseModel):
+    code: str
+    subtotal: float
+
+
+class PromoCodeValidateResponse(BaseModel):
+    code: str
+    discount_type: str
+    discount_value: float
+    discount_amount: float
+    message: str
+
+
+class GuestOrderRequest(BaseModel):
+    email: str
+    name: str
+    phone: str | None = None
+    shipping_address: str
+    items: list[OrderItemCreate]
+    promo_code: str | None = None
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v):
+        v = v.strip().lower()
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", v):
+            raise ValueError("Invalid email address")
+        return v

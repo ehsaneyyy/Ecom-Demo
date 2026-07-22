@@ -21,15 +21,30 @@ function loadCart(userId) {
   }
 }
 
+function loadPromo(userId) {
+  try {
+    const key = userId ? `atelier-promo-${userId}` : 'atelier-promo-guest'
+    const stored = localStorage.getItem(key)
+    return stored ? JSON.parse(stored) : { code: null, discount: 0 }
+  } catch {
+    return { code: null, discount: 0 }
+  }
+}
+
 export function CartProvider({ children }) {
   const { currentUser } = useAuth()
   const userId = currentUser?.id || null
   const [items, setItems] = useState(() => loadCart(userId))
+  const [promoCode, setPromoCode] = useState(() => loadPromo(userId).code)
+  const [promoDiscount, setPromoDiscount] = useState(() => loadPromo(userId).discount)
   const prevUserId = useRef(userId)
 
   useEffect(() => {
     if (prevUserId.current !== userId) {
       setItems(loadCart(userId))
+      const promo = loadPromo(userId)
+      setPromoCode(promo.code)
+      setPromoDiscount(promo.discount)
       prevUserId.current = userId
     }
   }, [userId])
@@ -37,6 +52,11 @@ export function CartProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(getCartKey(userId), JSON.stringify(items))
   }, [items, userId])
+
+  useEffect(() => {
+    const key = userId ? `atelier-promo-${userId}` : 'atelier-promo-guest'
+    localStorage.setItem(key, JSON.stringify({ code: promoCode, discount: promoDiscount }))
+  }, [promoCode, promoDiscount, userId])
 
   const addItem = useCallback((product, quantity = 1, selectedColor = null, selectedSize = null) => {
     setItems((prev) => {
@@ -65,13 +85,27 @@ export function CartProvider({ children }) {
       : i))
   }, [])
 
-  const clearCart = useCallback(() => setItems([]), [])
+  const clearCart = useCallback(() => {
+    setItems([])
+    setPromoCode(null)
+    setPromoDiscount(0)
+  }, [])
+
+  const applyPromo = useCallback((code, discount) => {
+    setPromoCode(code)
+    setPromoDiscount(discount)
+  }, [])
+
+  const removePromo = useCallback(() => {
+    setPromoCode(null)
+    setPromoDiscount(0)
+  }, [])
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const count = items.reduce((sum, i) => sum + i.quantity, 0)
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, count }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, count, promoCode, promoDiscount, applyPromo, removePromo }}>
       {children}
     </CartContext.Provider>
   )

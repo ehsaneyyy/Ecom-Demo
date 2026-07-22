@@ -8,67 +8,35 @@ import { useSEO } from '../hooks/useSEO'
 
 export default function Home() {
   useSEO({ title: undefined, description: undefined, path: '/' })
-  const { products, categories, loading } = useData()
+  const { products, loading } = useData()
 
-  const categoriesWithCount = useMemo(() =>
-    categories.map((cat) => ({
-      ...cat,
-      count: products.filter((p) => p.category === cat.name).length,
-    })),
-    [products, categories]
-  )
+  const newProducts = useMemo(() => products.filter((p) => p.tag === 'New').slice(0, 4), [products])
+  const saleProducts = useMemo(() => products.filter((p) => p.compareAtPrice).slice(0, 4), [products])
 
   return (
     <>
-      <section className="relative min-h-[85vh] sm:h-screen flex flex-col">
-        <div className="flex-1 flex items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1510] via-[#0a0a0a] to-[#101218]" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] rounded-full bg-[#c8a97e]/[0.04] blur-[80px] sm:blur-[100px]" />
-          <div className="relative z-10 text-center max-w-4xl px-4 sm:px-6">
-            <Reveal delay={0}>
-              <p className="text-[0.6rem] sm:text-xs tracking-[0.4em] uppercase text-white/30 mb-4 sm:mb-6">Summer 2026</p>
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10 sm:mb-16">
+            <Reveal>
+              <div>
+                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">Collection</p>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em]">Shop All</h1>
+              </div>
             </Reveal>
-            <Reveal delay={200}>
-              <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-[-0.04em] leading-[0.9] mb-6 sm:mb-8">
-                <span className="block text-white/90">Designed</span>
-                <span className="block text-white/30">to last</span>
-              </h1>
-            </Reveal>
-            <Reveal delay={400}>
-              <p className="text-xs sm:text-sm text-white/30 max-w-md mx-auto mb-8 sm:mb-10 leading-relaxed px-4">
-                Curated objects for considered living. Every piece crafted with intention,
-                built to endure, designed to inspire.
-              </p>
-            </Reveal>
-            <Reveal delay={600}>
+            <Reveal delay={40}>
               <Link
-                to="/#products"
-                className="inline-flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 border border-white/10 text-xs tracking-[0.2em] uppercase text-white/50 hover:bg-white hover:text-black transition-all duration-500"
+                to="/category/all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 border border-white/10 text-xs tracking-[0.1em] uppercase text-white/50 hover:bg-white hover:text-black transition-all duration-500"
               >
-                Shop Now
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                View All
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                   <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
             </Reveal>
           </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      </section>
 
-      <section id="products" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <Reveal>
-            <div className="flex items-end justify-between mb-10 sm:mb-16">
-              <div>
-                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">Collection</p>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em]">Featured</h2>
-              </div>
-              <Link to="/category/all" className="text-xs text-white/30 hover:text-white/50 transition-colors">
-                View all →
-              </Link>
-            </div>
-          </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
@@ -88,58 +56,98 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <Reveal>
-            <div className="mb-10 sm:mb-16">
-              <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">Browse by</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em]">Categories</h2>
-            </div>
-          </Reveal>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {categoriesWithCount.map((cat, i) => (
-              <Reveal key={cat.id} delay={i * 100}>
-                <Link
-                  to={`/category/${cat.name.toLowerCase()}`}
-                  className="group relative aspect-[4/5] overflow-hidden block"
-                  style={{ background: cat.color }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br opacity-40" style={{ backgroundImage: `linear-gradient(135deg, ${cat.accent}20, transparent)` }} />
-                  <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-white/90 mb-1 group-hover:text-white transition-colors">{cat.name}</h3>
-                    <p className={`text-[0.6rem] sm:text-xs ${cat.count === 0 ? 'text-red-400/60' : 'text-white/50'}`}>{cat.count} products</p>
-                  </div>
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/[0.04] transition-colors duration-500" />
-                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                </Link>
-              </Reveal>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <Reveal>
+              <Link to="/category/all" className="group relative overflow-hidden bg-[#141210] block aspect-[16/7] flex items-center">
+                <div className="absolute inset-0">
+                  <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[200px] sm:w-[300px] h-[200px] sm:h-[300px] rounded-full bg-[#c8a97e]/10 blur-[60px]" />
+                </div>
+                <div className="relative z-10 p-6 sm:p-10">
+                  <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">Limited Time</p>
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-[-0.03em] mb-2">Free Shipping</h2>
+                  <p className="text-xs sm:text-sm text-white/30 mb-4">On all orders above ₹10,000</p>
+                  <span className="inline-flex items-center gap-2 text-xs text-white/50 group-hover:text-white/70 transition-colors">
+                    Shop Now
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+              </Link>
+            </Reveal>
+            <Reveal delay={100}>
+              <Link to="/category/all" className="group relative overflow-hidden bg-[#101218] block aspect-[16/7] flex items-center">
+                <div className="absolute inset-0">
+                  <div className="absolute top-1/3 right-1/4 w-[200px] sm:w-[300px] h-[200px] sm:h-[300px] rounded-full bg-[#60a5fa]/10 blur-[60px]" />
+                </div>
+                <div className="relative z-10 p-6 sm:p-10">
+                  <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">New Season</p>
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-[-0.03em] mb-2">Summer 2026</h2>
+                  <p className="text-xs sm:text-sm text-white/30 mb-4">Fresh arrivals for your home</p>
+                  <span className="inline-flex items-center gap-2 text-xs text-white/50 group-hover:text-white/70 transition-colors">
+                    Explore
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+              </Link>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <Reveal direction="left">
-            <div className="relative overflow-hidden bg-[#141210] aspect-[16/9] sm:aspect-[21/9] flex items-center">
-              <div className="absolute inset-0">
-                <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] rounded-full bg-[#c85a3e]/20 blur-[60px] sm:blur-[100px]" />
-                <div className="absolute top-1/3 right-1/4 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] rounded-full bg-[#00d4ff]/10 blur-[40px] sm:blur-[80px]" />
-              </div>
-              <div className="relative z-10 p-6 sm:p-12 md:p-20 max-w-2xl">
-                <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-4">Limited Edition</p>
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-[-0.03em] mb-4">The Artisan<br />Collection</h2>
-                <p className="text-xs sm:text-sm text-white/30 mb-6 sm:mb-8 max-w-sm leading-relaxed">
-                  Hand-selected pieces from independent makers around the world.
-                </p>
-                <Link to="/category/all" className="inline-flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors">
-                  Explore
+      {newProducts.length > 0 && (
+        <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <Reveal>
+              <div className="flex items-end justify-between mb-10 sm:mb-16">
+                <div>
+                  <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">Just Arrived</p>
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em]">New In</h2>
+                </div>
+                <Link to="/category/all" className="text-xs text-white/30 hover:text-white/50 transition-colors">
+                  View all →
                 </Link>
               </div>
+            </Reveal>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
+              {newProducts.map((p, i) => (
+                <Reveal key={p.id} delay={i * 80}>
+                  <ProductCard product={p} />
+                </Reveal>
+              ))}
             </div>
-          </Reveal>
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
+
+      {saleProducts.length > 0 && (
+        <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <Reveal>
+              <div className="flex items-end justify-between mb-10 sm:mb-16">
+                <div>
+                  <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-3">Limited Offer</p>
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em]">On Sale</h2>
+                </div>
+                <Link to="/category/all" className="text-xs text-white/30 hover:text-white/50 transition-colors">
+                  View all →
+                </Link>
+              </div>
+            </Reveal>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
+              {saleProducts.map((p, i) => (
+                <Reveal key={p.id} delay={i * 80}>
+                  <ProductCard product={p} />
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   )
 }

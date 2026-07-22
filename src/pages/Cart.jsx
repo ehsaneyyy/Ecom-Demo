@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import { promoApi } from '../api/api'
 import Reveal from '../components/Reveal'
 
 const GST_RATE = 0.18
@@ -16,10 +17,16 @@ function calcGST(subtotal) {
 }
 
 export default function Cart() {
-  const { items, updateQuantity, removeItem, total, count } = useCart()
+  const { items, updateQuantity, removeItem, total, count, promoCode, promoDiscount, applyPromo, removePromo } = useCart()
   const { isLoggedIn, isAdmin } = useAuth()
   const [removingId, setRemovingId] = useState(null)
+  const [promoInput, setPromoInput] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoError, setPromoError] = useState(null)
   const gst = calcGST(total)
+
+  const discountedTotal = Math.max(0, total - promoDiscount)
+  const finalGst = calcGST(discountedTotal)
 
   if (items.length === 0) {
     return (
@@ -40,6 +47,21 @@ export default function Cart() {
       removeItem(itemId, selectedColor, selectedSize)
       setRemovingId(null)
     }, 200)
+  }
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return
+    setPromoLoading(true)
+    setPromoError(null)
+    try {
+      const result = await promoApi.validate(promoInput.trim(), total)
+      applyPromo(result.code, result.discount_amount)
+      setPromoInput('')
+    } catch (err) {
+      setPromoError(err.response?.data?.detail || 'Invalid promo code')
+    } finally {
+      setPromoLoading(false)
+    }
   }
 
   return (
@@ -107,26 +129,60 @@ export default function Cart() {
           <div className="lg:col-span-1">
             <div className="bg-[#141414] p-6 sm:p-8 rounded-lg lg:sticky lg:top-24">
               <h2 className="text-sm font-medium text-white/50 mb-6">Order Summary</h2>
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Subtotal ({count} items)</span>
                   <span className="text-white/50">₹{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">Shipping</span>
-                  <span className="text-white/50">{gst.shippingCost === 0 ? 'Free' : `₹${gst.shippingCost.toFixed(2)}`}</span>
+                  <span className="text-white/50">{finalGst.shippingCost === 0 ? 'Free' : `₹${finalGst.shippingCost.toFixed(2)}`}</span>
                 </div>
+                {promoDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[#4ade80]/70">Promo ({promoCode})</span>
+                    <span className="text-[#4ade80]/70">-₹{promoDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-white/30">IGST (18%)</span>
-                  <span className="text-white/50">₹{gst.igst.toFixed(2)}</span>
+                  <span className="text-white/50">₹{finalGst.igst.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-4 mt-4">
                   <div className="flex justify-between">
                     <span className="text-sm text-white/70">Total</span>
-                    <span className="text-base font-medium text-white/70">₹{gst.grandTotal.toFixed(2)}</span>
+                    <span className="text-base font-medium text-white/70">₹{finalGst.grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
+
+              <div className="mb-6">
+                {promoCode ? (
+                  <div className="flex items-center justify-between px-3 py-2 bg-[#4ade80]/5 border border-[#4ade80]/10 rounded">
+                    <span className="text-xs text-[#4ade80]/70 font-mono">{promoCode}</span>
+                    <button onClick={removePromo} className="text-[0.6rem] text-white/30 hover:text-[#c85a3e]/60 transition-colors">Remove</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null) }}
+                      placeholder="Promo code"
+                      className="flex-1 px-3 py-2 bg-[#0a0a0a] border border-white/10 text-xs text-white/50 placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors font-mono"
+                    />
+                    <button
+                      onClick={handleApplyPromo}
+                      disabled={promoLoading || !promoInput.trim()}
+                      className="px-3 py-2 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors disabled:opacity-50"
+                    >
+                      {promoLoading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {promoError && <p className="text-[0.6rem] text-red-400/70 mt-1.5">{promoError}</p>}
+              </div>
+
               {isAdmin ? (
                 <div className="text-center py-2">
                   <p className="text-[0.6rem] text-white/30 mb-3">Admin accounts cannot place orders</p>
@@ -134,22 +190,33 @@ export default function Cart() {
                     Go to Admin Panel
                   </Link>
                 </div>
-              ) : isLoggedIn ? (
-                <Link
-                  to="/checkout"
-                  className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
-                >
-                  Proceed to Checkout
-                </Link>
               ) : (
-                <Link
-                  to="/login"
-                  className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
-                >
-                  Sign in to Checkout
-                </Link>
+                <div className="space-y-2">
+                  {isLoggedIn ? (
+                    <Link
+                      to="/checkout"
+                      className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
+                    >
+                      Proceed to Checkout
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        to="/checkout?guest=1"
+                        className="block w-full py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase text-center hover:bg-white/90 transition-colors"
+                      >
+                        Guest Checkout
+                      </Link>
+                      <Link
+                        to="/login"
+                        className="block w-full py-3.5 border border-white/10 text-xs text-white/30 tracking-[0.15em] uppercase text-center hover:text-white/50 hover:border-white/20 transition-colors"
+                      >
+                        Sign In
+                      </Link>
+                    </>
+                  )}
+                </div>
               )}
-              {!isLoggedIn && !isAdmin && <p className="text-center text-[0.6rem] text-white/30 mt-3">Sign in or create an account to complete your order</p>}
               <Link to="/category/all" className="block text-center text-xs text-white/30 hover:text-white/30 transition-colors mt-4">
                 Continue Shopping
               </Link>

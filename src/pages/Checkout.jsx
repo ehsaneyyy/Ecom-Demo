@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
-import { paymentApi, orderApi } from '../api/api'
+import { paymentApi, orderApi, promoApi } from '../api/api'
 import { emailRegex } from '../utils/validate'
 import Reveal from '../components/Reveal'
 
@@ -24,16 +24,23 @@ function calcGST(subtotal, shippingState) {
 }
 
 export default function Checkout() {
-  const { items, total, count, clearCart } = useCart()
-  const { currentUser } = useAuth()
-  const { addresses, addAddress, updateAddress, deleteAddress } = useData()
+  const { items, total, count, clearCart, promoCode, promoDiscount, applyPromo, removePromo } = useCart()
+  const { currentUser, isLoggedIn } = useAuth()
+  const { addOrder, addGuestOrder, addresses, addAddress, updateAddress, deleteAddress } = useData()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isGuest = searchParams.get('guest') === '1'
 
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState(null)
   const [isPlacing, setIsPlacing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('razorpay')
+
+  const [guestInfo, setGuestInfo] = useState({ email: '', name: '', phone: '' })
+  const [promoInput, setPromoInput] = useState(promoCode || '')
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoError, setPromoError] = useState(null)
 
   const [shipping, setShipping] = useState({
     firstName: currentUser?.name?.split(' ')[0] || '',
@@ -63,23 +70,24 @@ export default function Checkout() {
   })
   const [editingAddress, setEditingAddress] = useState(null)
 
-  const gst = calcGST(total, shipping.state)
+  const discountedTotal = Math.max(0, total - promoDiscount)
+  const gst = calcGST(discountedTotal, shipping.state)
 
   useEffect(() => {
-    if (addresses.length > 0 && !selectedAddressId) {
+    if (isLoggedIn && addresses.length > 0 && !selectedAddressId) {
       const def = addresses.find((a) => a.is_default) || addresses[0]
       setSelectedAddressId(def.id)
       applyAddress(def)
     }
-  }, [addresses])
+  }, [addresses, isLoggedIn])
 
   const applyAddress = (addr) => {
     const parts = addr.full_name.split(' ')
     setShipping({
       firstName: parts[0] || '',
       lastName: parts.slice(1).join(' ') || '',
-      email: currentUser?.email || '',
-      phone: addr.phone || currentUser?.phone || '',
+      email: currentUser?.email || guestInfo.email || '',
+      phone: addr.phone || currentUser?.phone || guestInfo.phone || '',
       address: addr.address_line1 + (addr.address_line2 ? `, ${addr.address_line2}` : ''),
       city: addr.city,
       state: addr.state,
@@ -141,8 +149,8 @@ export default function Checkout() {
   const resetAddressForm = () => {
     setAddressForm({
       label: 'Home',
-      full_name: `${currentUser?.name || ''}`,
-      phone: currentUser?.phone || '',
+      full_name: `${currentUser?.name || guestInfo.name || ''}`,
+      phone: currentUser?.phone || guestInfo.phone || '',
       address_line1: '',
       address_line2: '',
       city: '',
@@ -167,6 +175,31 @@ export default function Checkout() {
     )
   }
 
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return
+    setPromoLoading(true)
+    setPromoError(null)
+    try {
+      const result = await promoApi.validate(promoInput.trim(), discountedTotal)
+      applyPromo(result.code, result.discount_amount)
+      setPromoInput('')
+    } catch (err) {
+      setPromoError(err.response?.data?.detail || 'Invalid promo code')
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  const validateGuestStep = () => {
+    const errs = {}
+    if (!guestInfo.email.trim()) errs.guestEmail = 'Required'
+    else if (!emailRegex.test(guestInfo.email)) errs.guestEmail = 'Invalid email'
+    if (!guestInfo.name.trim()) errs.guestName = 'Required'
+    if (!guestInfo.phone.trim()) errs.guestPhone = 'Required'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   const validateStep1 = () => {
     const errs = {}
     if (!shipping.firstName.trim()) errs.firstName = 'Required'
@@ -183,7 +216,14 @@ export default function Checkout() {
   }
 
   const handleNext = () => {
-    if (step === 1 && validateStep1()) setStep(2)
+    if (step === 0) {
+      if (validateGuestStep()) {
+        setShipping((s) => ({ ...s, email: guestInfo.email, phone: guestInfo.phone, firstName: guestInfo.name.split(' ')[0], lastName: guestInfo.name.split(' ').slice(1).join(' ') }))
+        setStep(1)
+      }
+    } else if (step === 1 && validateStep1()) {
+      setStep(2)
+    }
   }
 
   const loadRazorpayScript = () => {
@@ -211,9 +251,18 @@ export default function Checkout() {
       quantity: item.quantity,
     }))
 
+    const guestEmail = isGuest ? guestInfo.email : undefined
+    const guestName = isGuest ? guestInfo.name : undefined
+    const guestPhone = isGuest ? guestInfo.phone : undefined
+
     if (paymentMethod === 'cod') {
       try {
-        const result = await orderApi.createCod(address, orderItems)
+        let result
+        if (isGuest) {
+          result = await addGuestOrder(guestEmail, guestName, guestPhone, address, orderItems, promoCode)
+        } else {
+          result = await orderApi.createCod(address, orderItems, promoCode)
+        }
         clearCart()
         navigate(`/order-success?order_id=${result.id}&payment_method=cod`)
       } catch (err) {
@@ -242,13 +291,18 @@ export default function Checkout() {
         order_id,
         handler: async (response) => {
           try {
-            await paymentApi.verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              shipping_address: address,
-              items: orderItems,
-            })
+            if (isGuest) {
+              await addGuestOrder(guestEmail, guestName, guestPhone, address, orderItems, promoCode)
+            } else {
+              await paymentApi.verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                shipping_address: address,
+                items: orderItems,
+                promo_code: promoCode || undefined,
+              })
+            }
             clearCart()
             navigate(`/order-success?order_id=${response.razorpay_order_id}&payment_id=${response.razorpay_payment_id}`)
           } catch (err) {
@@ -257,9 +311,9 @@ export default function Checkout() {
           }
         },
         prefill: {
-          name: `${shipping.firstName} ${shipping.lastName}`,
-          email: shipping.email,
-          contact: shipping.phone,
+          name: isGuest ? guestInfo.name : `${shipping.firstName} ${shipping.lastName}`,
+          email: isGuest ? guestInfo.email : shipping.email,
+          contact: isGuest ? guestInfo.phone : shipping.phone,
         },
         theme: { color: '#0a0a0a' },
         modal: { ondismiss: () => { setIsPlacing(false) } },
@@ -273,6 +327,9 @@ export default function Checkout() {
     }
   }
 
+  const maxStep = isGuest ? 2 : 2
+  const showGuestStep = isGuest && step === 0
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       <Reveal>
@@ -281,13 +338,13 @@ export default function Checkout() {
 
       <Reveal delay={60}>
         <div className="flex items-center gap-2 sm:gap-3 mb-10 sm:mb-12 overflow-x-auto pb-2">
-          {['Shipping', 'Review & Pay'].map((label, i) => (
+          {(isGuest ? ['Your Info', 'Shipping', 'Review & Pay'] : ['Shipping', 'Review & Pay']).map((label, i) => (
             <div key={label} className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[0.6rem] ${step > i + 1 ? 'bg-white text-black' : step === i + 1 ? 'bg-[#141414] text-white/70 border border-white/20' : 'bg-[#141414] text-white/30 border border-white/10'}`}>
-                {step > i + 1 ? '✓' : i + 1}
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[0.6rem] ${step > i + (isGuest ? 0 : 1) ? 'bg-white text-black' : step === i + (isGuest ? 0 : 1) ? 'bg-[#141414] text-white/70 border border-white/20' : 'bg-[#141414] text-white/30 border border-white/10'}`}>
+                {step > i + (isGuest ? 0 : 1) ? '✓' : i + 1}
               </div>
-              <span className={`text-xs ${step === i + 1 ? 'text-white/50' : 'text-white/30'}`}>{label}</span>
-              {i < 1 && <div className="w-4 sm:w-8 h-px bg-[#141414]" />}
+              <span className={`text-xs ${step === i + (isGuest ? 0 : 1) ? 'text-white/50' : 'text-white/30'}`}>{label}</span>
+              {i < (isGuest ? 2 : 1) && <div className="w-4 sm:w-8 h-px bg-[#141414]" />}
             </div>
           ))}
         </div>
@@ -295,12 +352,45 @@ export default function Checkout() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16">
         <div className="lg:col-span-2">
-          {step === 1 && (
+          {showGuestStep && (
+            <Reveal>
+              <div className="space-y-5">
+                <h2 className="text-lg font-medium text-white/50 mb-6">Your Information</h2>
+                <div className="bg-[#141414] rounded-lg border border-white/10 p-4 sm:p-6 space-y-4">
+                  <p className="text-xs text-white/30 mb-2">Continue as guest or <Link to="/login" className="text-white/50 hover:text-white/70 underline underline-offset-2">sign in</Link></p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Full Name</label>
+                      <input value={guestInfo.name} onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.guestName ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.guestName && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.guestName}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
+                      <input type="email" value={guestInfo.email} onChange={(e) => setGuestInfo({ ...guestInfo, email: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.guestEmail ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.guestEmail && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.guestEmail}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone</label>
+                      <input type="tel" value={guestInfo.phone} onChange={(e) => setGuestInfo({ ...guestInfo, phone: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.guestPhone ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.guestPhone && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.guestPhone}</p>}
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-4">
+                    <button onClick={handleNext} className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px]">
+                      Continue to Shipping
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          )}
+
+          {step === 1 && !showGuestStep && (
             <Reveal>
               <div className="space-y-5">
                 <h2 className="text-lg font-medium text-white/50 mb-6">Shipping Information</h2>
 
-                {addresses.length > 0 && addressMode === 'select' && (
+                {isLoggedIn && addresses.length > 0 && addressMode === 'select' && (
                   <div className="bg-[#141414] rounded-lg border border-white/10 p-4 sm:p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-white/30">Saved Addresses</p>
@@ -337,124 +427,102 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {(addressMode === 'new' || addressMode === 'edit' || addresses.length === 0) && (
+                {(addressMode === 'new' || addressMode === 'edit' || addresses.length === 0 || !isLoggedIn) && (
                   <div className="bg-[#141414] rounded-lg border border-white/10 p-4 sm:p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-white/30">{editingAddress ? 'Edit Address' : 'New Address'}</p>
-                      {addresses.length > 0 && (
+                    {isLoggedIn && addresses.length > 0 && (
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-white/30">{editingAddress ? 'Edit Address' : 'New Address'}</p>
                         <button onClick={() => { setAddressMode('select'); setEditingAddress(null) }} className="text-[0.6rem] text-white/30 hover:text-white/50 transition-colors">
                           ← Back to saved
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[0.6rem] text-white/30 mb-1">Label</label>
-                        <select value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors">
-                          <option>Home</option>
-                          <option>Work</option>
-                          <option>Other</option>
-                        </select>
+                        <label className="block text-[0.6rem] text-white/30 mb-1">First Name</label>
+                        <input value={shipping.firstName} onChange={(e) => setShipping({ ...shipping, firstName: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.firstName ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.firstName && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.firstName}</p>}
                       </div>
                       <div>
-                        <label className="block text-[0.6rem] text-white/30 mb-1">Full Name</label>
-                        <input value={addressForm.full_name} onChange={(e) => setAddressForm({ ...addressForm, full_name: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                        <label className="block text-[0.6rem] text-white/30 mb-1">Last Name</label>
+                        <input value={shipping.lastName} onChange={(e) => setShipping({ ...shipping, lastName: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.lastName ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.lastName && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.lastName}</p>}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
+                        <input type="email" value={shipping.email} onChange={(e) => setShipping({ ...shipping, email: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.email}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone</label>
+                        <input type="tel" value={shipping.phone} onChange={(e) => setShipping({ ...shipping, phone: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.phone ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.phone && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.phone}</p>}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1">Phone Number</label>
-                      <input value={addressForm.phone || ''} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} placeholder="98765 43210" className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors" />
+                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Address</label>
+                      <input value={shipping.address} onChange={(e) => setShipping({ ...shipping, address: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.address ? 'border-red-500/50' : 'border-white/10'}`} />
+                      {errors.address && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.address}</p>}
                     </div>
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1">Address Line 1</label>
-                      <input value={addressForm.address_line1} onChange={(e) => setAddressForm({ ...addressForm, address_line1: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
-                    </div>
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1">Address Line 2 <span className="text-white/20">(optional)</span></label>
-                      <input value={addressForm.address_line2} onChange={(e) => setAddressForm({ ...addressForm, address_line2: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-[0.6rem] text-white/30 mb-1">City</label>
-                        <input value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="col-span-2 sm:col-span-1">
+                        <label className="block text-[0.6rem] text-white/30 mb-1.5">City</label>
+                        <input value={shipping.city} onChange={(e) => setShipping({ ...shipping, city: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.city ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.city && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.city}</p>}
                       </div>
                       <div>
-                        <label className="block text-[0.6rem] text-white/30 mb-1">State</label>
-                        <input value={addressForm.state} onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                        <label className="block text-[0.6rem] text-white/30 mb-1.5">State</label>
+                        <input value={shipping.state} onChange={(e) => setShipping({ ...shipping, state: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.state ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.state && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.state}</p>}
                       </div>
                       <div>
-                        <label className="block text-[0.6rem] text-white/30 mb-1">ZIP</label>
-                        <input value={addressForm.zip_code} onChange={(e) => setAddressForm({ ...addressForm, zip_code: e.target.value })} className="w-full px-3 py-2.5 bg-[#141414] border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors" />
+                        <label className="block text-[0.6rem] text-white/30 mb-1.5">ZIP</label>
+                        <input value={shipping.zip} onChange={(e) => setShipping({ ...shipping, zip: e.target.value })} className={`w-full px-4 py-3 bg-[#0a0a0a] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.zip ? 'border-red-500/50' : 'border-white/10'}`} />
+                        {errors.zip && <p className="text-[0.6rem] text-red-400/60 mt-1">{errors.zip}</p>}
                       </div>
                     </div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={addressForm.is_default} onChange={(e) => setAddressForm({ ...addressForm, is_default: e.target.checked })} className="w-4 h-4 rounded border-white/20 bg-[#141414] text-white/50 focus:ring-white/20" />
-                      <span className="text-[0.6rem] text-white/30">Set as default address</span>
-                    </label>
-                    <div className="flex gap-3 pt-2">
-                      <button onClick={handleSaveAddress} className="px-5 py-2.5 bg-white text-black text-xs tracking-[0.1em] uppercase hover:bg-white/90 transition-colors min-h-[40px]">
-                        {editingAddress ? 'Update' : 'Save Address'}
+                    <div className="flex justify-end pt-4">
+                      <button onClick={handleNext} className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px]">
+                        Review Order
                       </button>
-                      {addresses.length > 0 && (
-                        <button onClick={() => { setAddressMode('select'); setEditingAddress(null) }} className="px-5 py-2.5 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[40px]">
-                          Cancel
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}
+              </div>
+            </Reveal>
+          )}
 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">First Name</label>
-                      <input value={shipping.firstName} onChange={(e) => setShipping({ ...shipping, firstName: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.firstName ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.firstName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.firstName}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Last Name</label>
-                      <input value={shipping.lastName} onChange={(e) => setShipping({ ...shipping, lastName: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.lastName ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.lastName && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.lastName}</p>}
-                    </div>
+          {step === 1 && !showGuestStep && isLoggedIn && addresses.length > 0 && addressMode === 'select' && (
+            <Reveal>
+              <div className="space-y-5">
+                <h2 className="text-lg font-medium text-white/50 mb-6">Shipping Information</h2>
+                <div className="bg-[#141414] rounded-lg border border-white/10 p-4 sm:p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-white/30">Saved Addresses</p>
+                    <button onClick={() => { resetAddressForm(); setAddressMode('new') }} className="text-[0.6rem] text-white/30 hover:text-white/50 transition-colors">+ Add New</button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Email</label>
-                      <input type="email" value={shipping.email} onChange={(e) => setShipping({ ...shipping, email: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.email ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.email && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.email}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">Phone</label>
-                      <input type="tel" value={shipping.phone} onChange={(e) => setShipping({ ...shipping, phone: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.phone ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.phone && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.phone}</p>}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[0.6rem] text-white/30 mb-1.5">Address</label>
-                    <input value={shipping.address} onChange={(e) => setShipping({ ...shipping, address: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.address ? 'border-red-500/50' : 'border-white/10'}`} />
-                    {errors.address && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.address}</p>}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <div className="col-span-2 sm:col-span-1">
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">City</label>
-                      <input value={shipping.city} onChange={(e) => setShipping({ ...shipping, city: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.city ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.city && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.city}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">State</label>
-                      <input value={shipping.state} onChange={(e) => setShipping({ ...shipping, state: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.state ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.state && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.state}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[0.6rem] text-white/30 mb-1.5">ZIP</label>
-                      <input value={shipping.zip} onChange={(e) => setShipping({ ...shipping, zip: e.target.value })} className={`w-full px-4 py-3 bg-[#141414] border text-sm text-white/70 focus:outline-none focus:border-white/20 transition-colors ${errors.zip ? 'border-red-500/50' : 'border-white/10'}`} />
-                      {errors.zip && <p className="text-[0.6rem] text-red-400/60 mt-1" role="alert">{errors.zip}</p>}
-                    </div>
-                  </div>
-                  <div className="flex justify-end pt-4">
-                    <button onClick={handleNext} className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px]">
-                      Review Order
-                    </button>
+                  <div className="space-y-2">
+                    {addresses.map((addr) => (
+                      <div key={addr.id} className={`p-3 sm:p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === addr.id ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`} onClick={() => handleSelectAddress(addr)}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-xs text-white/50 font-medium">{addr.label}</p>
+                              {addr.is_default && <span className="text-[0.5rem] text-[#4ade80]/60 bg-[#4ade80]/10 px-1.5 py-0.5 rounded">Default</span>}
+                            </div>
+                            <p className="text-[0.6rem] text-white/30">{addr.full_name}</p>
+                            <p className="text-[0.6rem] text-white/30">{addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ''}</p>
+                            <p className="text-[0.6rem] text-white/30">{addr.city}, {addr.state} {addr.zip_code}</p>
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button onClick={(e) => { e.stopPropagation(); handleEditAddress(addr) }} className="px-2 py-1 text-[0.55rem] text-white/30 hover:text-white/50 border border-white/10 hover:border-white/20 transition-colors">Edit</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(addr) }} className="px-2 py-1 text-[0.55rem] text-red-400/50 hover:text-red-400/80 border border-white/10 hover:border-red-400/20 transition-colors">Del</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -470,16 +538,14 @@ export default function Checkout() {
                     <p className="text-[0.6rem] text-white/30 mb-1">Shipping to</p>
                     <p className="text-sm text-white/50">{shipping.firstName} {shipping.lastName}</p>
                     <p className="text-xs text-white/30">{shipping.phone} · {shipping.address}, {shipping.city}, {shipping.state} {shipping.zip}</p>
+                    {isGuest && <p className="text-xs text-white/30 mt-1">{guestInfo.email}</p>}
                   </div>
                 </div>
 
                 <div className="bg-[#141414] p-5 sm:p-6 rounded-lg space-y-4">
                   <p className="text-[0.6rem] text-white/30 mb-3">Payment Method</p>
                   <div className="space-y-2">
-                    <button
-                      onClick={() => setPaymentMethod('razorpay')}
-                      className={`w-full p-4 rounded-lg border text-left transition-colors flex items-center gap-3 ${paymentMethod === 'razorpay' ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}
-                    >
+                    <button onClick={() => setPaymentMethod('razorpay')} className={`w-full p-4 rounded-lg border text-left transition-colors flex items-center gap-3 ${paymentMethod === 'razorpay' ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'razorpay' ? 'border-white/50' : 'border-white/20'}`}>
                         {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-white/50" />}
                       </div>
@@ -488,10 +554,7 @@ export default function Checkout() {
                         <p className="text-[0.6rem] text-white/30">UPI, Cards, Netbanking</p>
                       </div>
                     </button>
-                    <button
-                      onClick={() => setPaymentMethod('cod')}
-                      className={`w-full p-4 rounded-lg border text-left transition-colors flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}
-                    >
+                    <button onClick={() => setPaymentMethod('cod')} className={`w-full p-4 rounded-lg border text-left transition-colors flex items-center gap-3 ${paymentMethod === 'cod' ? 'border-white/20 bg-white/[0.03]' : 'border-white/10 hover:border-white/15'}`}>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cod' ? 'border-white/50' : 'border-white/20'}`}>
                         {paymentMethod === 'cod' && <div className="w-2 h-2 rounded-full bg-white/50" />}
                       </div>
@@ -518,11 +581,7 @@ export default function Checkout() {
                   <button onClick={() => setStep(1)} className="px-6 py-3.5 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors min-h-[48px]">
                     Back
                   </button>
-                  <button
-                    onClick={handlePlaceOrder}
-                    disabled={isPlacing}
-                    className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-50"
-                  >
+                  <button onClick={handlePlaceOrder} disabled={isPlacing} className="px-8 py-3.5 bg-white text-black text-xs tracking-[0.15em] uppercase hover:bg-white/90 transition-colors min-h-[48px] disabled:opacity-50">
                     {isPlacing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay with Razorpay'}
                   </button>
                 </div>
@@ -549,6 +608,24 @@ export default function Checkout() {
                   </div>
                 ))}
               </div>
+
+              <div className="mb-4">
+                {promoCode ? (
+                  <div className="flex items-center justify-between px-3 py-2 bg-[#4ade80]/5 border border-[#4ade80]/10 rounded">
+                    <span className="text-xs text-[#4ade80]/70 font-mono">{promoCode}</span>
+                    <button onClick={removePromo} className="text-[0.6rem] text-white/30 hover:text-[#c85a3e]/60 transition-colors">Remove</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input type="text" value={promoInput} onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null) }} placeholder="Promo code" className="flex-1 px-3 py-2 bg-[#0a0a0a] border border-white/10 text-xs text-white/50 placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors font-mono" />
+                    <button onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()} className="px-3 py-2 border border-white/10 text-xs text-white/30 hover:text-white/50 hover:border-white/20 transition-colors disabled:opacity-50">
+                      {promoLoading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {promoError && <p className="text-[0.6rem] text-red-400/70 mt-1.5">{promoError}</p>}
+              </div>
+
               <div className="border-t border-white/10 pt-4 space-y-3">
                 <div className="flex justify-between text-xs">
                   <span className="text-white/30">Subtotal</span>
@@ -558,6 +635,12 @@ export default function Checkout() {
                   <span className="text-white/30">Shipping</span>
                   <span className="text-white/50">{gst.shippingCost === 0 ? 'Free' : `₹${gst.shippingCost.toFixed(2)}`}</span>
                 </div>
+                {promoDiscount > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[#4ade80]/70">Discount</span>
+                    <span className="text-[#4ade80]/70">-₹{promoDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 {gst.igst > 0 ? (
                   <div className="flex justify-between text-xs">
                     <span className="text-white/30">IGST (18%)</span>
