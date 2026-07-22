@@ -97,6 +97,6 @@ async def global_exception_handler(request, exc):
         headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error"},
+        content={"detail": str(exc)},
         headers=headers,
     )
