@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import ProductCard from '../components/ProductCard'
@@ -57,8 +57,6 @@ export default function Home() {
   const saleProducts = useMemo(() => products.filter((p) => p.compareAtPrice).slice(0, 4), [products])
 
   const [promoIndex, setPromoIndex] = useState(0)
-  const touchStart = useRef(null)
-  const touchDelta = useRef(0)
 
   const nextPromo = useCallback(() => {
     setPromoIndex((i) => (i + 1) % PROMOS.length)
@@ -69,33 +67,13 @@ export default function Home() {
     return () => clearInterval(timer)
   }, [nextPromo])
 
-  const handleTouchStart = (e) => {
-    touchStart.current = e.touches[0].clientX
-    touchDelta.current = 0
-  }
-
-  const handleTouchMove = (e) => {
-    if (touchStart.current === null) return
-    touchDelta.current = e.touches[0].clientX - touchStart.current
-  }
-
-  const handleTouchEnd = () => {
-    if (Math.abs(touchDelta.current) > 50) {
-      nextPromo()
-    }
-    touchStart.current = null
-  }
-
   return (
     <>
       <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div
-            className="relative overflow-hidden group"
+            className="relative overflow-hidden"
             key={PROMOS[promoIndex].id}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             <Link to="/category/all" className={`group relative overflow-hidden ${PROMOS[promoIndex].bg} block aspect-[21/5] sm:aspect-[21/4] flex items-center`}>
               <div className="absolute inset-0">
