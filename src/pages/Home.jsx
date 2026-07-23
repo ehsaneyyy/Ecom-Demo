@@ -60,10 +60,6 @@ export default function Home() {
   const touchStart = useRef(null)
   const touchDelta = useRef(0)
 
-  const prevPromo = useCallback(() => {
-    setPromoIndex((i) => (i - 1 + PROMOS.length) % PROMOS.length)
-  }, [])
-
   const nextPromo = useCallback(() => {
     setPromoIndex((i) => (i + 1) % PROMOS.length)
   }, [])
@@ -85,8 +81,7 @@ export default function Home() {
 
   const handleTouchEnd = () => {
     if (Math.abs(touchDelta.current) > 50) {
-      if (touchDelta.current > 0) prevPromo()
-      else nextPromo()
+      nextPromo()
     }
     touchStart.current = null
   }
@@ -118,21 +113,6 @@ export default function Home() {
                 </span>
               </div>
             </Link>
-
-            <button
-              onClick={(e) => { e.preventDefault(); prevPromo() }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:bg-black/60 hover:text-white/80 transition-all opacity-0 group-hover:opacity-100"
-              aria-label="Previous slide"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-            <button
-              onClick={(e) => { e.preventDefault(); nextPromo() }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:bg-black/60 hover:text-white/80 transition-all opacity-100"
-              aria-label="Next slide"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
 
             <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 flex gap-2">
               {PROMOS.map((_, i) => (
