@@ -14,7 +14,7 @@ export default function InvoiceButton({ order, variant = 'admin' }) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `atelier-invoice-${order.id.slice(0, 8)}.pdf`
+      a.download = `ecom-demo-invoice-${order.id.slice(0, 8)}.pdf`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

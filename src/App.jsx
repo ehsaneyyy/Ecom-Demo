@@ -10,7 +10,6 @@ import Breadcrumbs from './components/Breadcrumbs'
 import AdminRoute from './components/AdminRoute'
 import AdminBlock from './components/AdminBlock'
 import { ToastContainer } from './components/Toast'
-import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -63,12 +62,11 @@ function Layout({ children }) {
   return (
     <>
       {!isAuth && <Navbar />}
-      <main id="main-content" className="animate-fade-in" key={pathname}>
+      <main id="main-content" className="animate-fade-in">
         {!isAdmin && <Breadcrumbs />}
         {children}
       </main>
       {!isAuth && <Footer />}
-      {!isAuth && <ScrollToTop />}
       <ToastContainer />
     </>
   )
@@ -108,7 +106,7 @@ export default function App() {
                       <Route path="/gift-cards" element={<AdminBlock><ComingSoon title="Gift Cards" description="Gift cards coming soon." /></AdminBlock>} />
                       <Route path="/sustainability" element={<AdminBlock><ComingSoon title="Sustainability" description="Full sustainability report coming soon." /></AdminBlock>} />
                       <Route path="/press" element={<AdminBlock><ComingSoon title="Press" description="Press kit coming soon." /></AdminBlock>} />
-                      <Route path="/contact" element={<AdminBlock><ComingSoon title="Contact" description="Email us at hello@atelier.com." /></AdminBlock>} />
+                      <Route path="/contact" element={<AdminBlock><ComingSoon title="Contact" description="Email us at hello@ecom-demo.com." /></AdminBlock>} />
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="dashboard" element={<AdminDashboard />} />

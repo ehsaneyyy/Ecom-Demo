@@ -7,7 +7,7 @@ const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('atelier-token')
+  const token = localStorage.getItem('ecom-demo-token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -18,8 +18,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('atelier-token')
-      localStorage.removeItem('atelier-user')
+      localStorage.removeItem('ecom-demo-token')
+      localStorage.removeItem('ecom-demo-user')
     }
     return Promise.reject(error)
   }

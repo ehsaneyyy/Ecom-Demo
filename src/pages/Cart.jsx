@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { promoApi } from '../api/api'
 import Reveal from '../components/Reveal'
+import { useSEO } from '../hooks/useSEO'
 
 const GST_RATE = 0.18
 const SHIPPING_COST = 500
@@ -17,13 +18,13 @@ function calcGST(subtotal) {
 }
 
 export default function Cart() {
+  useSEO({ title: 'Shopping Bag', description: 'Review your shopping bag and proceed to checkout.', path: '/cart' })
   const { items, updateQuantity, removeItem, total, count, promoCode, promoDiscount, applyPromo, removePromo } = useCart()
   const { isLoggedIn, isAdmin } = useAuth()
   const [removingId, setRemovingId] = useState(null)
   const [promoInput, setPromoInput] = useState('')
   const [promoLoading, setPromoLoading] = useState(false)
   const [promoError, setPromoError] = useState(null)
-  const gst = calcGST(total)
 
   const discountedTotal = Math.max(0, total - promoDiscount)
   const finalGst = calcGST(discountedTotal)
@@ -209,7 +210,7 @@ export default function Cart() {
                   )}
                 </div>
               )}
-              <Link to="/category/all" className="block text-center text-xs text-white/30 hover:text-white/30 transition-colors mt-4">
+              <Link to="/category/all" className="block text-center text-xs text-white/30 hover:text-white/50 transition-colors mt-4">
                 Continue Shopping
               </Link>
             </div>

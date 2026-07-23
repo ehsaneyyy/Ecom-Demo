@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { useAuth } from './AuthContext'
 
 const CartContext = createContext()
@@ -8,7 +8,7 @@ export function useCart() {
 }
 
 function getCartKey(userId) {
-  return userId ? `atelier-cart-${userId}` : 'atelier-cart-guest'
+  return userId ? `ecom-demo-cart-${userId}` : 'ecom-demo-cart-guest'
 }
 
 function loadCart(userId) {
@@ -23,7 +23,7 @@ function loadCart(userId) {
 
 function loadPromo(userId) {
   try {
-    const key = userId ? `atelier-promo-${userId}` : 'atelier-promo-guest'
+    const key = userId ? `ecom-demo-promo-${userId}` : 'ecom-demo-promo-guest'
     const stored = localStorage.getItem(key)
     return stored ? JSON.parse(stored) : { code: null, discount: 0 }
   } catch {
@@ -54,7 +54,7 @@ export function CartProvider({ children }) {
   }, [items, userId])
 
   useEffect(() => {
-    const key = userId ? `atelier-promo-${userId}` : 'atelier-promo-guest'
+    const key = userId ? `ecom-demo-promo-${userId}` : 'ecom-demo-promo-guest'
     localStorage.setItem(key, JSON.stringify({ code: promoCode, discount: promoDiscount }))
   }, [promoCode, promoDiscount, userId])
 
@@ -101,8 +101,8 @@ export function CartProvider({ children }) {
     setPromoDiscount(0)
   }, [])
 
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-  const count = items.reduce((sum, i) => sum + i.quantity, 0)
+  const total = useMemo(() => items.reduce((sum, i) => sum + i.price * i.quantity, 0), [items])
+  const count = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items])
 
   return (
     <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, count, promoCode, promoDiscount, applyPromo, removePromo }}>

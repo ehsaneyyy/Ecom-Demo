@@ -27,7 +27,7 @@ PRODUCTS = [
     {"name": "Velvet Eye Mask", "price": 2700, "category": "Bedroom", "color": "#18161a", "description": "Silk-lined velvet sleep mask with adjustable elastic strap.", "colors": ["#2c2c2c", "#5c3d2e", "#8b6f47"], "stock": 40},
 ]
 
-ADMIN_USER = {"name": "Admin", "email": "admin@atelier.com", "password": "admin123", "is_admin": True}
+ADMIN_USER = {"name": "Admin", "email": "admin@ecom-demo.com", "password": "admin123", "is_admin": True}
 
 DEFAULT_CATEGORIES = [
     {"name": "Living", "color": "#1a1510", "accent": "#c8a97e"},

@@ -60,12 +60,12 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5 transition-transform duration-300 ${hidden && mobileOpen ? '-translate-y-full' : ''}`}>
+      <nav className={`sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5 transition-transform duration-300 ${hidden ? '-translate-y-full' : ''}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-14 sm:h-16">
 
           <div className="flex items-center gap-6">
             <Link to="/" className="text-sm font-semibold tracking-tight text-white hover:text-white/70 transition-colors">
-              ATELIER
+              ECOM DEMO
             </Link>
             <div className="hidden md:flex items-center gap-6 text-xs">
               <Link to="/" className={linkClass('/')}>Home</Link>

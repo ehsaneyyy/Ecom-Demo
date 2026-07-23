@@ -65,7 +65,7 @@ def _build_order_confirmation_html(customer_name: str, order_id: str, items: lis
         </div>
         <div style="text-align:center;padding:30px 0;">
           <p style="margin:0;font-size:12px;color:#999;">Questions? Reply to this email or contact us at {settings.store_email}</p>
-          <p style="margin:8px 0 0;font-size:12px;color:#ccc;">© 2026 Atelier. All rights reserved.</p>
+          <p style="margin:8px 0 0;font-size:12px;color:#ccc;">© 2026 Ecom Demo. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -97,7 +97,7 @@ def _build_status_update_html(customer_name: str, order_id: str, new_status: str
         </div>
         <div style="text-align:center;padding:30px 0;">
           <p style="margin:0;font-size:12px;color:#999;">Questions? Reply to this email or contact us at {settings.store_email}</p>
-          <p style="margin:8px 0 0;font-size:12px;color:#ccc;">© 2026 Atelier. All rights reserved.</p>
+          <p style="margin:8px 0 0;font-size:12px;color:#ccc;">© 2026 Ecom Demo. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -109,7 +109,7 @@ def send_order_confirmation_email(customer_email: str, customer_name: str, order
         logger.warning("SendGrid API key not configured — skipping order confirmation email")
         return False
 
-    subject = f"Your Atelier Order #{order_id[:8].upper()} is Confirmed"
+    subject = f"Your Ecom Demo Order #{order_id[:8].upper()} is Confirmed"
     html_content = _build_order_confirmation_html(customer_name, order_id, items, total, shipping_address)
 
     message = Mail(
@@ -134,7 +134,7 @@ def send_status_update_email(customer_email: str, customer_name: str, order_id: 
         logger.warning("SendGrid API key not configured — skipping status update email")
         return False
 
-    subject = f"Your Atelier Order #{order_id[:8].upper()} — {new_status.title()}"
+    subject = f"Your Ecom Demo Order #{order_id[:8].upper()} — {new_status.title()}"
     html_content = _build_status_update_html(customer_name, order_id, new_status)
 
     message = Mail(

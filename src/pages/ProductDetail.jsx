@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useParams } from 'react-router-dom'
 import { useData } from '../context/DataContext'
@@ -37,7 +37,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!product) return
-    const key = 'atelier-recently-viewed'
+    const key = 'ecom-demo-recently-viewed'
     const stored = JSON.parse(localStorage.getItem(key) || '[]')
     const filtered = stored.filter((p) => p.id !== product.id)
     filtered.unshift({ id: product.id, name: product.name, price: product.price, images: product.images, color: product.color, category: product.category })
@@ -57,6 +57,16 @@ export default function ProductDetail() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
   const [reviewError, setReviewError] = useState(null)
   const [reviewSuccess, setReviewSuccess] = useState(false)
+
+  const recentProducts = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ecom-demo-recently-viewed') || '[]')
+        .filter((p) => p.id !== product?.id)
+        .slice(0, 4)
+    } catch {
+      return []
+    }
+  }, [product?.id])
 
   if (loading && !product) {
     return (
@@ -439,19 +449,14 @@ export default function ProductDetail() {
           </section>
         )}
 
-        {(() => {
-          const recent = JSON.parse(localStorage.getItem('atelier-recently-viewed') || '[]')
-            .filter((p) => p.id !== product.id)
-            .slice(0, 4)
-          if (recent.length === 0) return null
-          return (
+        {recentProducts.length > 0 && (
             <section className="mt-16 sm:mt-24">
               <Reveal>
                 <p className="text-[0.6rem] tracking-[0.3em] uppercase text-white/30 mb-2">Browsing history</p>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] mb-8 sm:mb-12">Recently Viewed</h2>
               </Reveal>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-8 sm:gap-y-12 lg:gap-x-6">
-                {recent.map((rp, i) => (
+                {recentProducts.map((rp, i) => (
                   <Reveal key={rp.id} delay={i * 80}>
                     <Link to={`/product/${rp.id}`} className="group block">
                       <div className="aspect-[4/5] rounded-sm mb-3 sm:mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform duration-500" style={{ background: rp.images?.length ? 'transparent' : rp.color }}>
@@ -470,8 +475,7 @@ export default function ProductDetail() {
                 ))}
               </div>
             </section>
-          )
-        })()}
+          )}
       </div>
 
       {showLoginPrompt && createPortal(

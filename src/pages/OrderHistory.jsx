@@ -7,21 +7,27 @@ import { statusColors } from '../constants/orderStatuses'
 import StatusTimeline from '../components/StatusTimeline'
 import Reveal from '../components/Reveal'
 import InvoiceButton from '../components/InvoiceButton'
+import ConfirmModal from '../components/ConfirmModal'
+import { useToast } from '../components/Toast'
 
 export default function OrderHistory() {
-  const { orders } = useData()
+  const { orders, fetchOrders } = useData()
   const { currentUser } = useAuth()
+  const { show } = useToast()
   const [expandedOrder, setExpandedOrder] = useState(null)
   const [cancelling, setCancelling] = useState(null)
+  const [confirmId, setConfirmId] = useState(null)
 
-  const handleCancel = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return
-    setCancelling(orderId)
+  const handleCancel = async () => {
+    if (!confirmId) return
+    setCancelling(confirmId)
     try {
-      await orderApi.cancel(orderId)
-      window.location.reload()
+      await orderApi.cancel(confirmId)
+      setConfirmId(null)
+      show('Order cancelled', 'success')
+      fetchOrders()
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to cancel order')
+      show(err.response?.data?.detail || 'Failed to cancel order', 'error')
     } finally {
       setCancelling(null)
     }
@@ -120,7 +126,7 @@ export default function OrderHistory() {
                         </Link>
                         {canCancel && (
                           <button
-                            onClick={() => handleCancel(order.id)}
+                            onClick={() => setConfirmId(order.id)}
                             disabled={cancelling === order.id}
                             className="inline-flex items-center gap-2 px-4 py-2 border border-red-500/20 text-xs text-red-400/70 hover:text-red-400 hover:border-red-500/40 transition-colors min-h-[40px] disabled:opacity-50"
                           >
@@ -136,6 +142,13 @@ export default function OrderHistory() {
           })}
         </div>
       )}
+      <ConfirmModal
+        open={!!confirmId}
+        title="Cancel Order"
+        message="Are you sure you want to cancel this order? This action cannot be undone."
+        onConfirm={handleCancel}
+        onCancel={() => setConfirmId(null)}
+      />
     </div>
   )
 }

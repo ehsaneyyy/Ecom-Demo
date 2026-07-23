@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     razorpay_key_secret: str = ""
     frontend_url: str = "http://localhost:5173"
     sendgrid_api_key: str = ""
-    store_email: str = "hello@atelier.com"
+    store_email: str = "hello@ecom-demo.com"
 
     model_config = {"env_file": ".env"}
 

@@ -27,7 +27,7 @@ export default function AdminLayout() {
       <div className="hidden md:flex md:w-56 md:flex-shrink-0">
         <div className="w-56 bg-[#141414] border-r border-white/10 flex flex-col">
           <div className="h-16 flex items-center px-6 border-b border-white/10">
-            <span className="text-xs font-semibold tracking-[0.2em] text-white/50">ATELIER ADMIN</span>
+            <span className="text-xs font-semibold tracking-[0.2em] text-white/50">ECOM DEMO ADMIN</span>
           </div>
           <nav className="flex-1 py-4 px-3 space-y-1">
             {nav.map((item) => (
@@ -49,7 +49,7 @@ export default function AdminLayout() {
             ))}
           </nav>
           <div className="p-4 border-t border-white/10">
-            <span className="text-[0.55rem] text-white/20">Atelier Admin v1.0</span>
+            <span className="text-[0.55rem] text-white/20">Ecom Demo Admin v1.0</span>
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function AdminLayout() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <div className="absolute left-0 top-0 bottom-0 w-64 bg-[#141414] border-r border-white/10 shadow-2xl animate-slide-down">
             <div className="h-16 flex items-center px-6 border-b border-white/10">
-              <span className="text-xs font-semibold tracking-[0.2em] text-white/50">ATELIER ADMIN</span>
+              <span className="text-xs font-semibold tracking-[0.2em] text-white/50">ECOM DEMO ADMIN</span>
             </div>
             <nav className="py-4 px-3 space-y-1">
               {nav.map((item) => (
@@ -82,7 +82,7 @@ export default function AdminLayout() {
               ))}
             </nav>
             <div className="p-4 border-t border-white/10">
-              <span className="text-[0.55rem] text-white/20">Atelier Admin v1.0</span>
+              <span className="text-[0.55rem] text-white/20">Ecom Demo Admin v1.0</span>
             </div>
           </div>
         </div>

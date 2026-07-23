@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import useFocusTrap from '../hooks/useFocusTrap'
 
-const RECENT_KEY = 'atelier-recent-searches'
+const RECENT_KEY = 'ecom-demo-recent-searches'
 const MAX_RECENT = 5
 
 function getRecentSearches() {
@@ -160,15 +160,6 @@ export default function SearchOverlay({ open, onClose }) {
   }
 
   useEffect(() => {
-    if (open) {
-      setQuery('')
-      setActiveIndex(-1)
-      setRecentSearches(getRecentSearches())
-      setTimeout(() => inputRef.current?.focus(), 100)
-    }
-  }, [open])
-
-  useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
       const items = listRef.current.querySelectorAll('[data-search-item]')
       items[activeIndex]?.scrollIntoView({ block: 'nearest' })
@@ -202,7 +193,7 @@ export default function SearchOverlay({ open, onClose }) {
               role="combobox"
               aria-autocomplete="list"
             />
-            <button onClick={onClose} className="text-[0.6rem] text-white/30 hover:text-white/30 transition-colors px-2 py-1 border border-white/10 rounded flex-shrink-0">
+            <button onClick={onClose} className="text-[0.6rem] text-white/30 hover:text-white/50 transition-colors px-2 py-1 border border-white/10 rounded flex-shrink-0">
               ESC
             </button>
           </div>

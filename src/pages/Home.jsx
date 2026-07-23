@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useData } from '../context/DataContext'
 import ProductCard from '../components/ProductCard'
@@ -27,6 +27,26 @@ const PROMOS = [
     subtitle: 'Fresh arrivals for your home',
     cta: 'Explore',
   },
+  {
+    id: 'festive',
+    bg: 'bg-[#181210]',
+    glow: 'bg-[#f59e0b]/10',
+    glowPos: 'bottom-1/3 left-1/4',
+    label: 'Festive Sale',
+    title: 'Up to 40% Off',
+    subtitle: 'Limited period festive specials',
+    cta: 'Grab Deal',
+  },
+  {
+    id: 'newarrivals',
+    bg: 'bg-[#101412]',
+    glow: 'bg-[#34d399]/10',
+    glowPos: 'top-1/2 right-1/3',
+    label: 'Just Dropped',
+    title: 'New Arrivals',
+    subtitle: 'Be the first to explore our latest collection',
+    cta: 'Discover',
+  },
 ]
 
 export default function Home() {
@@ -37,21 +57,51 @@ export default function Home() {
   const saleProducts = useMemo(() => products.filter((p) => p.compareAtPrice).slice(0, 4), [products])
 
   const [promoIndex, setPromoIndex] = useState(0)
+  const touchStart = useRef(null)
+  const touchDelta = useRef(0)
 
-  const advancePromo = useCallback(() => {
+  const prevPromo = useCallback(() => {
+    setPromoIndex((i) => (i - 1 + PROMOS.length) % PROMOS.length)
+  }, [])
+
+  const nextPromo = useCallback(() => {
     setPromoIndex((i) => (i + 1) % PROMOS.length)
   }, [])
 
   useEffect(() => {
-    const timer = setInterval(advancePromo, 5000)
+    const timer = setInterval(nextPromo, 5000)
     return () => clearInterval(timer)
-  }, [advancePromo])
+  }, [nextPromo])
+
+  const handleTouchStart = (e) => {
+    touchStart.current = e.touches[0].clientX
+    touchDelta.current = 0
+  }
+
+  const handleTouchMove = (e) => {
+    if (touchStart.current === null) return
+    touchDelta.current = e.touches[0].clientX - touchStart.current
+  }
+
+  const handleTouchEnd = () => {
+    if (Math.abs(touchDelta.current) > 50) {
+      if (touchDelta.current > 0) prevPromo()
+      else nextPromo()
+    }
+    touchStart.current = null
+  }
 
   return (
     <>
       <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden" key={PROMOS[promoIndex].id}>
+          <div
+            className="relative overflow-hidden group"
+            key={PROMOS[promoIndex].id}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <Link to="/category/all" className={`group relative overflow-hidden ${PROMOS[promoIndex].bg} block aspect-[21/5] sm:aspect-[21/4] flex items-center`}>
               <div className="absolute inset-0">
                 <div className={`absolute ${PROMOS[promoIndex].glowPos} -translate-y-1/2 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] rounded-full ${PROMOS[promoIndex].glow} blur-[80px] transition-all duration-700`} />
@@ -68,6 +118,21 @@ export default function Home() {
                 </span>
               </div>
             </Link>
+
+            <button
+              onClick={(e) => { e.preventDefault(); prevPromo() }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:bg-black/60 hover:text-white/80 transition-all opacity-0 group-hover:opacity-100"
+              aria-label="Previous slide"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); nextPromo() }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:bg-black/60 hover:text-white/80 transition-all opacity-100"
+              aria-label="Next slide"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
 
             <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 flex gap-2">
               {PROMOS.map((_, i) => (

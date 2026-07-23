@@ -43,10 +43,8 @@ export default function InvoicePDF({ order }) {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>ATELIER</Text>
-            <Text style={[styles.value, { fontSize: 8, color: '#999', marginTop: 4 }]}>Premium Furniture & Home</Text>
-            <Text style={[styles.value, { fontSize: 8, color: '#999' }]}>Kerala, India</Text>
-            <Text style={[styles.value, { fontSize: 8, color: '#999' }]}>GSTIN: 32AALCT1234F1Z5</Text>
+            <Text style={styles.brand}>ECOM DEMO</Text>
+            <Text style={[styles.value, { fontSize: 8, color: '#999', marginTop: 4 }]}>Premium Products</Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={styles.invoiceTitle}>TAX INVOICE</Text>
@@ -117,8 +115,8 @@ export default function InvoicePDF({ order }) {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>This is a computer-generated invoice and does not require a physical signature.</Text>
-          <Text style={styles.footerText}>For support, contact us at hello@atelier.com</Text>
-          <Text style={styles.footerText}>Thank you for shopping with Atelier.</Text>
+          <Text style={styles.footerText}>For support, contact us at hello@ecom-demo.com</Text>
+          <Text style={styles.footerText}>Thank you for shopping with Ecom Demo.</Text>
         </View>
       </Page>
     </Document>

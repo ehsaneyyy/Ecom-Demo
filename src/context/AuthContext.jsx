@@ -10,27 +10,27 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('atelier-user')
+      const stored = localStorage.getItem('ecom-demo-user')
       return stored ? JSON.parse(stored) : null
     } catch {
       return null
     }
   })
-  const [token, setToken] = useState(() => localStorage.getItem('atelier-token'))
+  const [token, setToken] = useState(() => localStorage.getItem('ecom-demo-token'))
 
   useEffect(() => {
     if (token) {
-      localStorage.setItem('atelier-token', token)
+      localStorage.setItem('ecom-demo-token', token)
     } else {
-      localStorage.removeItem('atelier-token')
+      localStorage.removeItem('ecom-demo-token')
     }
   }, [token])
 
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('atelier-user', JSON.stringify(currentUser))
+      localStorage.setItem('ecom-demo-user', JSON.stringify(currentUser))
     } else {
-      localStorage.removeItem('atelier-user')
+      localStorage.removeItem('ecom-demo-user')
     }
   }, [currentUser])
 
@@ -59,8 +59,8 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setToken(null)
     setCurrentUser(null)
-    localStorage.removeItem('atelier-token')
-    localStorage.removeItem('atelier-user')
+    localStorage.removeItem('ecom-demo-token')
+    localStorage.removeItem('ecom-demo-user')
   }, [])
 
   const updateUser = useCallback((userData) => {

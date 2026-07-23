@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { emailRegex } from '../utils/validate'
 import PasswordInput from '../components/PasswordInput'
 import Reveal from '../components/Reveal'
+import { useSEO } from '../hooks/useSEO'
 
 export default function Login() {
+  useSEO({ title: 'Sign In', description: 'Sign in to your account.', path: '/login' })
   const { login, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })

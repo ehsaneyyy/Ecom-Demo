@@ -1,28 +1,29 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function loadWishlist() {
   try {
-    return JSON.parse(localStorage.getItem('atelier-wishlist') || '[]')
+    return JSON.parse(localStorage.getItem('ecom-demo-wishlist') || '[]')
   } catch { return [] }
 }
 
 export default function ProductCard({ product }) {
   const hasImage = product.images && product.images.length > 0
   const { isLoggedIn } = useAuth()
+  const navigate = useNavigate()
   const [wishlist, setWishlist] = useState(() => loadWishlist())
   const isWishlisted = wishlist.some((id) => id === product.id)
 
   useEffect(() => {
-    localStorage.setItem('atelier-wishlist', JSON.stringify(wishlist))
+    localStorage.setItem('ecom-demo-wishlist', JSON.stringify(wishlist))
   }, [wishlist])
 
   const toggleWishlist = (e) => {
     e.preventDefault()
     e.stopPropagation()
     if (!isLoggedIn) {
-      window.location.href = '/login'
+      navigate('/login')
       return
     }
     setWishlist((prev) =>

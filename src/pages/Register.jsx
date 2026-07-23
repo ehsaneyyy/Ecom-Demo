@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { emailRegex } from '../utils/validate'
 import PasswordInput from '../components/PasswordInput'
 import Reveal from '../components/Reveal'
+import { useSEO } from '../hooks/useSEO'
 
 export default function Register() {
+  useSEO({ title: 'Create Account', description: 'Create your account to start shopping.', path: '/register' })
   const { register } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', adminKey: '' })
@@ -52,7 +54,7 @@ export default function Register() {
         <Reveal>
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-[-0.03em] mb-2">Create account</h1>
-            <p className="text-sm text-white/30">Join Atelier</p>
+            <p className="text-sm text-white/30">Join Ecom Demo</p>
           </div>
         </Reveal>
 

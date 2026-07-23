@@ -159,6 +159,19 @@ export default function Checkout() {
     setEditingAddress(null)
   }
 
+  if (!isLoggedIn) {
+    return (
+      <Reveal>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+          <p className="text-sm text-white/30 mb-6">Please sign in to continue checkout</p>
+          <Link to="/login" className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black text-xs tracking-[0.2em] uppercase hover:bg-white/90 transition-all duration-500">
+            Sign In
+          </Link>
+        </div>
+      </Reveal>
+    )
+  }
+
   if (items.length === 0) {
     return (
       <Reveal>
@@ -260,7 +273,7 @@ export default function Checkout() {
         key: key_id,
         amount,
         currency,
-        name: 'Atelier',
+        name: 'Ecom Demo',
         description: `Order - ${items.length} item(s)`,
         order_id,
         handler: async (response) => {

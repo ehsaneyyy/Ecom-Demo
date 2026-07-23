@@ -3,7 +3,7 @@ import Reveal from '../components/Reveal'
 
 export default function ComingSoon({ title, description }) {
   useEffect(() => {
-    document.title = `${title || 'Page'} — Coming Soon | ATELIER`
+    document.title = `${title || 'Page'} — Coming Soon | Ecom Demo`
   }, [title])
 
   return (

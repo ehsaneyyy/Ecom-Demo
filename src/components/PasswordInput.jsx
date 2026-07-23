@@ -17,7 +17,6 @@ export default function PasswordInput({ value, onChange, placeholder, autoComple
         type="button"
         onMouseDown={(e) => { e.preventDefault(); setShow((s) => !s) }}
         className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 flex items-center justify-center cursor-pointer"
-        tabIndex={-1}
         aria-label={show ? 'Hide password' : 'Show password'}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white/30 hover:text-white/50 transition-colors">
