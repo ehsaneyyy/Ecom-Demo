@@ -30,6 +30,7 @@ MIGRATIONS = [
     ("order", "payment_method", "ALTER TABLE \"order\" ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'razorpay'"),
     ("order", "promo_code", 'ALTER TABLE "order" ADD COLUMN IF NOT EXISTS promo_code TEXT'),
     ("order", "discount_amount", 'ALTER TABLE "order" ADD COLUMN IF NOT EXISTS discount_amount REAL DEFAULT 0'),
+    ("address", "phone", 'ALTER TABLE "address" ADD COLUMN IF NOT EXISTS phone TEXT'),
 ]
 
 
